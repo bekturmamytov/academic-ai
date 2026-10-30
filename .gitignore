@@ -8,4 +8,4 @@ __pycache__/
 university/
 examples/private/
 .pytest_cache/
-evals/results/
+**/evals/results/
