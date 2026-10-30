@@ -1,0 +1,33 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "academic-ai",
+  "description": "academicAI — помощник преподавателя вуза: силабусы, РУП, тесты, лекции, УМКД, научные работы, видео-лекции. Нормы КР, ru/ky/en.",
+  "owner": { "name": "AI Lab (Devline LLC)", "email": "info@ailab.kg", "url": "https://ailab.kg" },
+  "allowCrossMarketplaceDependenciesOn": ["anthropic-agent-skills"],
+  "plugins": [
+    {
+      "name": "academic",
+      "source": "./plugins/academic",
+      "description": "Полный набор academicAI одной командой: core + research + media и проверка окружения.",
+      "category": "education"
+    },
+    {
+      "name": "academic-core",
+      "source": "./plugins/academic-core",
+      "description": "Паспорт курса, силабус, РУП, тесты, СРС, лекции, презентации, УМКД, учебно-методические пособия, отчёты.",
+      "category": "education"
+    },
+    {
+      "name": "academic-research",
+      "source": "./plugins/academic-research",
+      "description": "Реферат, доклад, курсовая, диплом, магистерская, статья, кандидатская: проверенная литература, оформление по ГОСТ.",
+      "category": "education"
+    },
+    {
+      "name": "academic-media",
+      "source": "./plugins/academic-media",
+      "description": "Видео-лекции из слайдов (Remotion), озвучка ElevenLabs по своему ключу, субтитры. Beta.",
+      "category": "education"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "academic",
+  "version": "0.0.1",
+  "description": "Полный набор academicAI одной командой: academic-core, academic-research, academic-media и проверка окружения.",
+  "author": { "name": "AI Lab (Devline LLC)", "url": "https://ailab.kg" },
+  "homepage": "https://github.com/bekturmamytov/academic-ai",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "keywords": ["education", "university", "syllabus", "kyrgyzstan"],
+  "dependencies": ["academic-core", "academic-research", "academic-media"]
+}

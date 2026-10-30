@@ -1,0 +1,9 @@
+.DS_Store
+.env
+*.local.*
+node_modules/
+out/
+__pycache__/
+# данные вуза и пользователей в репо не кладём
+university/
+examples/private/

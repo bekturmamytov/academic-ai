@@ -1,0 +1,11 @@
+{
+  "name": "academic-core",
+  "version": "0.0.1",
+  "description": "Паспорт курса, силабус, РУП, тесты, СРС, лекции, презентации, УМКД, учебно-методические пособия, отчёты — по нормам КР, ru/ky/en.",
+  "author": { "name": "AI Lab (Devline LLC)", "url": "https://ailab.kg" },
+  "homepage": "https://github.com/bekturmamytov/academic-ai",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "dependencies": [
+    { "name": "document-skills", "marketplace": "anthropic-agent-skills" }
+  ]
+}
