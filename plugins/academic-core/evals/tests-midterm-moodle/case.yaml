@@ -1,0 +1,57 @@
+schema_version: "1.1"
+name: tests-midterm-moodle
+description: >
+  Тест на рубежный контроль 1 по готовому паспорту курса (scaffold кладёт db-course/course.yaml).
+  Ожидается: skill tests пишет tests.yaml по темам 1–7 и РО, проверяет --check, собирает xlsx,
+  бланки, ключ, GIFT и Moodle XML. Запуск: --scaffold и --allow-tools Bash
+  "WebFetch(domain:pypi.org)" "WebFetch(domain:files.pythonhosted.org)".
+expected_outcome: db-course/tests.yaml и db-course/out/{tests.xlsx,tests_1.docx,tests_2.docx,tests_key.docx,tests.gift,tests_moodle.xml}
+tags: [tests, smoke]
+runs: 1
+context:
+  scaffold_script: fixture.sh
+execution:
+  max_turns: 60
+  timeout_seconds: 1200
+  allowed_tools: [Read, Write, Edit, Bash, Glob, Grep, Skill]
+  prompt: |
+    В папке db-course лежит паспорт моего курса «Базы данных». Составьте тест для рубежного
+    контроля 1 — темы недель с 1 по 7. Нужно 2 варианта по 12 вопросов, разные типы вопросов,
+    и файл для импорта в Moodle. Вопросов мне не задавайте, решайте сами.
+graders:
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?tests"'
+  - name: built-by-script
+    type: tool_used
+    tool: Bash
+    input_match: 'build_tests\.py'
+    weight: 2
+  - name: gift-created
+    type: file_exists
+    path: "db-course/out/tests.gift"
+  - name: moodle-xml-created
+    type: file_exists
+    path: "db-course/out/tests_moodle.xml"
+  - name: key-created
+    type: file_exists
+    path: "db-course/out/tests_key.docx"
+  - name: gift-has-categories
+    type: regex
+    target: { source: file, path: db-course/out/tests.gift }
+    pattern: '\$CATEGORY: \$course\$/top/'
+  - name: bank-quality
+    type: llm
+    focus: { source: file, path: db-course/tests.yaml }
+    weight: 3
+    criteria: |
+      Это банк тестовых вопросов в YAML для рубежного контроля по темам недель 1–7 курса «Базы данных».
+      PASS, если одновременно: (1) не меньше 12 вопросов, все с topic от 1 до 7;
+      (2) есть вопросы хотя бы по 5 разным темам (неделям);
+      (3) не меньше трёх разных type (single, multiple, truefalse, matching, short, open);
+      (4) у каждого вопроса single/multiple не меньше 4 options, и answer совпадает с текстом варианта;
+      (5) ответы фактически верны для баз данных (SQL, нормализация, ключи), дистракторы правдоподобны,
+      нет вариантов «все перечисленные»;
+      (6) per_variant: 12 и variants: 2.
+      FAIL, если нарушен хоть один пункт или есть явно неверный ключ.

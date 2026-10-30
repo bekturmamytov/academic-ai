@@ -1,0 +1,4 @@
+type: course_report
+course: ../course.yaml
+group: "ПИ-1-24"
+grades: grades.example.csv

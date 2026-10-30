@@ -1,0 +1,25 @@
+type: plan_report
+academic_year: "2026-2027"
+rate: "1,0"
+teaching:
+  - discipline: "Базы данных"
+    group: "ПИ-1-24"
+    semester: 3
+    lectures: 30
+    practicals: 15
+    labs: 30
+    other: 10
+    fact: 85
+methodical:
+  - name: "Разработка УМКД по дисциплине «Базы данных»"
+    deadline: "декабрь 2026"
+    result: "выполнено, утверждено на кафедре"
+research:
+  - name: "Статья в журнале (тема по плану кафедры)"
+    deadline: "май 2027"
+educational:
+  - name: "Кураторство группы ПИ-1-24"
+    deadline: "в течение года"
+    result: "выполнено"
+conclusions: |
+  План выполнен, кроме научной статьи — перенесена на следующий год.

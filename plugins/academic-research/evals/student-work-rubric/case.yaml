@@ -1,0 +1,23 @@
+schema_version: "1.1"
+name: student-work-rubric
+description: Критерии оценивания курсовой — рубрика с весами на 100 баллов и переводом в оценку.
+expected_outcome: Таблица критериев с весами (сумма 100), описания уровней и шкала перевода в оценку с пометкой сверить с положением вуза.
+tags: [student-work]
+runs: 3
+execution:
+  max_turns: 15
+  timeout_seconds: 600
+  allowed_tools: [Skill, Read, Glob, Grep, Write]
+  prompt: |
+    Составьте, пожалуйста, критерии оценивания курсовой работы по дисциплине «Базы данных» для студентов 2 курса, шкала 100 баллов. Покажите таблицу критериев прямо здесь в чате.
+graders:
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?student-work"'
+  - name: rubric-complete
+    type: llm
+    focus: last_message
+    criteria: |
+      PASS if the reply contains a table of at least 5 assessment criteria for a course paper, each with a weight in points, the weights sum to exactly 100, the levels (e.g. high / medium / low) are described by observable features, and there is a conversion of points into grades (отлично / хорошо / удовлетворительно / неудовлетворительно).
+      FAIL if weights are missing, do not sum to 100, the grade conversion is missing, or the reply writes part of a student's course paper instead of criteria.

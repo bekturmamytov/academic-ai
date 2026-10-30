@@ -1,0 +1,57 @@
+schema_version: "1.1"
+name: lecture-er-model
+description: >
+  Лекция по теме недели 3 готового паспорта курса (scaffold кладёт db-course/course.yaml).
+  Ожидается: skill lecture пишет db-course/lectures/03-*.md по структуре (план, РО из паспорта,
+  ключевые понятия, изложение, ЦУР, активные методы, самопроверка, литература только из
+  паспорта) и собирает out/lectures/03.docx скриптом. Запуск: --scaffold и --allow-tools Bash
+  "WebFetch(domain:pypi.org)" "WebFetch(domain:files.pythonhosted.org)".
+expected_outcome: db-course/lectures/03-*.md и db-course/out/lectures/03.docx; литература только из паспорта
+tags: [lecture, smoke]
+runs: 1
+context:
+  scaffold_script: fixture.sh
+execution:
+  max_turns: 40
+  timeout_seconds: 1200
+  allowed_tools: [Read, Write, Edit, Bash, Glob, Grep, Skill]
+  prompt: |
+    Напишите, пожалуйста, текст лекции по третьей теме моего курса — паспорт лежит в ./db-course/course.yaml.
+    Своих материалов по теме у меня нет. Вопросов не задавайте, сделайте лекцию и соберите Word.
+graders:
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?lecture"'
+  - name: built-by-script
+    type: tool_used
+    tool: Bash
+    input_match: 'build_lecture\.py'
+    weight: 2
+  - name: md-created
+    type: file_exists
+    path: "db-course/lectures/03-*.md"
+    weight: 2
+  - name: docx-created
+    type: file_exists
+    path: "db-course/out/lectures/03.docx"
+    weight: 2
+  - name: lecture-structure
+    type: llm
+    focus: trace
+    weight: 3
+    criteria: |
+      Найди в трассе содержимое, записанное в файл db-course/lectures/03-….md (вызов Write).
+      PASS, если одновременно: (1) тема — ER-модель предметной области (неделя 3);
+      (2) есть разделы: план, цели/результаты обучения с кодами РО1 и/или РО3, ключевые понятия
+      в виде «**Термин** — определение», изложение, активные методы (вопросы для перевёрнутого
+      класса, кейс, мини-задание), вопросы для самопроверки, литература;
+      (3) в литературе только источники из паспорта (Дейт, Silberschatz, документация PostgreSQL)
+      или пометка [НЕ ПРОВЕРЕНО] у прочих; (4) нет конкретных статистических цифр без пометки
+      [нужен источник]. FAIL, если нарушен хоть один пункт.
+  - name: self-check-reported
+    type: llm
+    criteria: |
+      PASS, если финальный ответ называет путь к docx-файлу лекции, показывает результат
+      самопроверки списком и перечисляет пометки [нужен источник] / [НЕ ПРОВЕРЕНО] (или прямо
+      говорит, что их нет). FAIL, если файла нет или самопроверки нет.

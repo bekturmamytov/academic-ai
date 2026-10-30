@@ -1,0 +1,107 @@
+# Паспорт научной работы — единый источник для docx, списка литературы, автореферата.
+# Схема: references/work-schema.md. Пустые поля skill спросит у автора по одному.
+schema: 1
+type: kandidat               # referat | doklad | tezisy | statya | kursovaya | diplom | magistr | kandidat | avtoreferat
+language: ru                 # ru | ky | en — язык документа
+title: "Методы раннего обнаружения отказов насосного оборудования по данным вибродиагностики"
+title_ky: ""
+title_en: ""
+
+authors:                     # первый — вы (из profile.yaml); для статьи — все соавторы по порядку
+  - name: "Иванов Иван Иванович"
+    degree: "старший преподаватель"
+    affiliation: "Кыргызский государственный технический университет им. И. Раззакова"
+    city: "Бишкек"
+    email: "i.ivanov@example.kg"
+    orcid: ""
+
+supervisor:                  # научный руководитель (для курсовой — руководитель)
+  name: "Петров Пётр Петрович"
+  degree: "доктор технических наук, профессор"
+consultant: {}               # научный консультант — если есть
+
+university: ""               # пусто — из profile.yaml / university/brand.yaml
+faculty: ""
+department: ""
+city: "Бишкек"
+year: 2027
+
+specialty:                   # только magistr / kandidat / avtoreferat
+  code: "05.13.01"           # шифр по номенклатуре НАК КР — сверить с действующей
+  name: "Системный анализ, управление и обработка информации"
+  science: "технических наук" # отрасль: «кандидата технических наук»
+program: ""                  # направление подготовки — для kursovaya / diplom / magistr
+discipline: ""               # дисциплина — для referat / kursovaya
+doc_label: ""                # своя надпись на титуле вместо стандартной (например «ВЫПУСКНАЯ КВАЛИФИКАЦИОННАЯ РАБОТА»)
+
+keywords:
+  ru: ["вибродиагностика", "насосное оборудование", "обнаружение отказов", "машинное обучение"]
+  ky: []
+  en: ["vibration diagnostics", "pumping equipment", "fault detection", "machine learning"]
+abstract:
+  ru: ""
+  ky: ""
+  en: ""
+
+journal: {}                  # для statya / tezisy — см. схему
+conference: {}               # для doklad / tezisy
+
+citation_style: gost         # gost | apa | ieee
+bib_order: alpha             # alpha (по алфавиту, кириллица впереди) | cite (по порядку ссылок)
+numbering: chapter           # chapter — «Рисунок 1.2»; through — «Рисунок 5»
+sources: sources.yaml        # список литературы — references/sources-schema.md
+
+data:                        # ваши собственные данные — только они идут в результаты
+  - file: data/vibration-2025.csv
+    description: "Замеры вибрации 12 насосов ОсОО «Пример», март–август 2025"
+
+structure:                   # главы по порядку; текст — в chapters/*.md
+  - kind: intro
+    file: chapters/00-intro.md
+    status: draft            # plan | draft | review | done
+  - kind: chapter
+    title: "Анализ методов вибродиагностики насосного оборудования"
+    file: chapters/01.md
+    plan: ["1.1 Виды отказов центробежных насосов", "1.2 Методы вибродиагностики"]
+    status: draft
+  - kind: chapter
+    title: "Модель раннего обнаружения отказов"
+    file: chapters/02.md
+    status: plan
+  - kind: conclusion
+    file: chapters/09-conclusion.md
+    status: plan
+  - kind: appendix
+    title: "Исходные данные замеров"
+    file: chapters/A.md
+    status: plan
+
+avtoreferat:                 # только для kandidat: автореферат собирается из этой же папки
+  structure:
+    - kind: section
+      title: "ОБЩАЯ ХАРАКТЕРИСТИКА РАБОТЫ"
+      file: avtoreferat/01-general.md
+    - kind: section
+      title: "ОСНОВНОЕ СОДЕРЖАНИЕ РАБОТЫ"
+      file: avtoreferat/02-content.md
+    - kind: section
+      title: "ВЫВОДЫ"
+      file: avtoreferat/03-conclusions.md
+  publications: []           # ключи из sources.yaml — ваши работы по теме
+  defense:
+    council: ""              # шифр диссертационного совета
+    organization: ""         # при какой организации совет
+    address: ""
+    date: ""
+  opponents: []              # официальные оппоненты: ["ФИО, степень, место работы"]
+  lead_organization: ""
+  executed_at: ""            # «Работа выполнена в …»
+
+ai_disclosure:               # правила журнала / НАК о раскрытии ИИ — см. схему
+  used: true
+  tools: "Claude (Anthropic)"
+  how: "структура, редактура языка, оформление"
+  include: false             # true — вставить заявление в документ
+  statement: ""
+
+output: out

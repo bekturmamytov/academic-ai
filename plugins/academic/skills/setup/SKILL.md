@@ -19,9 +19,10 @@ macOS — Homebrew (`brew`), Windows — `winget`.
 |---|---|---|---|
 | плагины `academic-core`, `academic-research`, `academic-media` | наши skills | `claude plugin list` | да (media — нет) |
 | `document-skills@anthropic-agent-skills` | сборка docx/xlsx/pptx/pdf | `claude plugin list` | да |
-| Python 3.10+ | скрипты документов | `python3 --version` / `py --version` | да |
+| `uv` | запуск скриптов документов (сам ставит Python и библиотеки) | `uv --version` | да |
 | Typst | вёрстка пособий и чистовиков PDF | `typst --version` | нет |
 | Node 20+ и ffmpeg | видео-лекции | `node --version`, `ffmpeg -version` | только для видео |
+| LibreOffice | PDF-копии docx и проверка вёрстки | `soffice --version` | нет |
 
 Чего нет в плагинах — поставь:
 
@@ -30,6 +31,9 @@ claude plugin marketplace add anthropics/skills
 claude plugin install document-skills@anthropic-agent-skills
 claude plugin install academic --marketplace bekturmamytov/academic-ai
 ```
+
+`uv`: macOS — `brew install uv`, Windows — `winget install --id astral-sh.uv -e`.
+Проверка, что всё работает: `uv run --with python-docx python -c "import docx"`.
 
 Необязательное ставь только если пользователь будет делать пособия (Typst) или
 видео (Node, ffmpeg). Спроси.
@@ -51,7 +55,19 @@ language: ru        # ru | ky | en — язык документов по умо
 ```
 
 Папка `university/` (логотип, шапка, положения вуза) — необязательна; скажи, что
-её можно добавить позже.
+её можно добавить позже. Если пользователь хочет сразу — создай
+`university/brand.yaml`:
+
+```yaml
+name: ""        # полное название вуза (ru)
+name_ky: ""
+name_en: ""
+logo: logo.png  # файл в этой же папке
+color: "#1F4E79"  # акцентный цвет презентаций и пособий
+```
+
+Ключ ElevenLabs (только для озвучки видео) — в файл `~/.academic/.env` строкой
+`ELEVENLABS_API_KEY=...`. Ключ не показывай в чате и не записывай в рабочую папку.
 
 ## 4. Итог
 

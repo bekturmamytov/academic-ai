@@ -1,0 +1,39 @@
+# Список литературы. Схема — references/sources-schema.md.
+# verified ставит только verify_sources.py — руками не менять.
+sources:
+  - key: lecun2015
+    type: article
+    authors: ["LeCun, Yann", "Bengio, Yoshua", "Hinton, Geoffrey"]
+    title: "Deep learning"
+    container: "Nature"
+    year: 2015
+    volume: "521"
+    issue: "7553"
+    pages: "436-444"
+    doi: "10.1038/nature14539"
+    lang: en
+    origin: openalex
+    verified: false
+
+  - key: he2016
+    type: conference
+    authors: ["He, Kaiming", "Zhang, Xiangyu", "Ren, Shaoqing", "Sun, Jian"]
+    title: "Deep Residual Learning for Image Recognition"
+    container: "2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)"
+    year: 2016
+    pages: "770-778"
+    publisher: "IEEE"
+    doi: "10.1109/CVPR.2016.90"
+    lang: en
+    origin: crossref
+    verified: false
+
+  - key: zakon_obrazovanie
+    type: law
+    title: "Об образовании"
+    note: "Закон Кыргызской Республики от 30 апреля 2003 года № 92"
+    url: ""                    # ссылка на страницу закона в cbd.minjust.gov.kg — даёт автор
+    accessed: ""
+    lang: ru
+    origin: user
+    verified: false

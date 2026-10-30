@@ -7,3 +7,5 @@ __pycache__/
 # данные вуза и пользователей в репо не кладём
 university/
 examples/private/
+.pytest_cache/
+evals/results/

@@ -1,0 +1,57 @@
+schema_version: "1.1"
+name: slides-from-lecture
+description: >
+  Презентация по готовой лекции 1 (scaffold кладёт db-course/course.yaml и
+  db-course/lectures/01-vvedenie-v-bd.md). Ожидается: skill slides пишет slides.yaml
+  (≤ 6 пунктов, заголовки ≤ 8 слов, заметки докладчика на каждом слайде, схема или таблица,
+  вопросы в конце) и собирает out/slides/01.pptx скриптом. Запуск: --scaffold и
+  --allow-tools Bash "WebFetch(domain:pypi.org)" "WebFetch(domain:files.pythonhosted.org)".
+expected_outcome: db-course/slides/01-*.yaml и db-course/out/slides/01.pptx
+tags: [slides, smoke]
+runs: 1
+context:
+  scaffold_script: fixture.sh
+execution:
+  max_turns: 40
+  timeout_seconds: 1200
+  allowed_tools: [Read, Write, Edit, Bash, Glob, Grep, Skill]
+  prompt: |
+    Сделайте презентацию к моей первой лекции — она в ./db-course/lectures/01-vvedenie-v-bd.md,
+    паспорт курса в ./db-course/course.yaml. Вопросов не задавайте.
+graders:
+  - name: skill-fired
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?slides"'
+  - name: built-by-script
+    type: tool_used
+    tool: Bash
+    input_match: 'build_slides\.py'
+    weight: 2
+  - name: pptx-created
+    type: file_exists
+    path: "db-course/out/slides/01.pptx"
+    weight: 3
+  - name: slides-yaml-quality
+    type: llm
+    focus: trace
+    weight: 3
+    criteria: |
+      Найди в трассе содержимое slides.yaml, записанное через Write (db-course/slides/….yaml).
+      PASS, если одновременно: (1) 8–20 слайдов в slides, есть хотя бы один type: section;
+      (2) у каждого слайда непустые notes — связный текст для преподавателя, а не 1–2 слова;
+      (3) ни в одном слайде нет больше 6 пунктов bullets верхнего уровня;
+      (4) есть хотя бы одна diagram или table; (5) есть questions (3–5 вопросов);
+      (6) факты на слайдах не выходят за текст лекции (нет новых цифр и источников).
+      FAIL, если нарушен хоть один пункт.
+  - name: no-overflow-warnings
+    type: regex
+    target: trace
+    pattern: 'не помещается даже кеглем 16'
+    match: not_contains
+  - name: polish-hint
+    type: llm
+    criteria: |
+      PASS, если финальный ответ называет путь к 01.pptx, показывает самопроверку списком и
+      упоминает, что презентацию можно доработать в PowerPoint или нативным skill pptx.
+      FAIL иначе.

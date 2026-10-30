@@ -1,0 +1,193 @@
+# Банк тестовых вопросов курса — схема в skills/tests/references/tests-schema.md.
+# Лежит рядом с course.yaml; темы — номера недель, РО — id из course.yaml.
+schema: 1
+title: "Итоговый тест"
+language: ru
+course: course.yaml          # путь к паспорту относительно этого файла (необязательно)
+variants: 2                  # сколько вариантов бланка собрать
+per_variant: 15              # вопросов в варианте (по умолчанию — все)
+seed: 2026                   # одинаковый seed — одинаковые варианты при пересборке
+time_minutes: 40
+
+questions:
+  - id: Q01
+    topic: 1
+    outcome: РО1
+    type: single
+    difficulty: easy
+    bloom: remember
+    text: "Как называется программный комплекс для создания баз данных, управления ими и доступа к ним?"
+    options: ["СУБД", "ОС", "IDE", "ERP-система"]
+    answer: "СУБД"
+
+  - id: Q02
+    topic: 2
+    outcome: РО1
+    type: single
+    difficulty: easy
+    bloom: understand
+    text: "Какой ключ однозначно определяет каждую строку таблицы?"
+    options: ["Первичный ключ", "Внешний ключ", "Индекс", "Составной атрибут"]
+    answer: "Первичный ключ"
+
+  - id: Q03
+    topic: 2
+    outcome: РО1
+    type: truefalse
+    difficulty: easy
+    bloom: understand
+    text: "Внешний ключ может ссылаться только на первичный ключ или уникальный столбец другой таблицы."
+    answer: true
+
+  - id: Q04
+    topic: 3
+    outcome: РО3
+    type: matching
+    difficulty: medium
+    bloom: understand
+    text: "Сопоставьте тип связи и пример."
+    pairs:
+      - ["1:1", "Гражданин — паспорт"]
+      - ["1:N", "Кафедра — преподаватели"]
+      - ["M:N", "Студенты — дисциплины"]
+
+  - id: Q05
+    topic: 4
+    outcome: РО3
+    type: single
+    difficulty: medium
+    bloom: apply
+    text: "Таблица (студент_id, курс_id, ФИО_студента, оценка) с ключом (студент_id, курс_id). Какую нормальную форму нарушает атрибут ФИО_студента?"
+    options: ["2НФ", "1НФ", "3НФ", "НФБК"]
+    answer: "2НФ"
+
+  - id: Q06
+    topic: 4
+    outcome: РО1
+    type: short
+    difficulty: medium
+    bloom: remember
+    text: "Как называется нормальная форма, в которой нет транзитивных зависимостей неключевых атрибутов от ключа? Ответ — аббревиатурой."
+    answer: ["3НФ", "3 НФ"]
+
+  - id: Q07
+    topic: 5
+    outcome: РО2
+    type: multiple
+    difficulty: medium
+    bloom: remember
+    text: "Какие из перечисленных — ограничения целостности в SQL?"
+    options: ["CHECK", "FOREIGN KEY", "UNIQUE", "ORDER BY", "GROUP BY"]
+    answer: ["CHECK", "FOREIGN KEY", "UNIQUE"]
+
+  - id: Q08
+    topic: 6
+    outcome: РО2
+    type: single
+    difficulty: easy
+    bloom: apply
+    text: "Какое условие отберёт строки, где поле email не заполнено?"
+    options: ["WHERE email IS NULL", "WHERE email = NULL", "WHERE email = ''", "WHERE NOT email"]
+    answer: "WHERE email IS NULL"
+
+  - id: Q09
+    topic: 7
+    outcome: РО2
+    type: single
+    difficulty: medium
+    bloom: apply
+    text: "Нужно вывести всех студентов, в том числе тех, у кого ещё нет оценок. Какое соединение таблиц students и grades подходит?"
+    options: ["students LEFT JOIN grades", "students INNER JOIN grades", "students CROSS JOIN grades", "grades LEFT JOIN students"]
+    answer: "students LEFT JOIN grades"
+
+  - id: Q10
+    topic: 8
+    outcome: РО2
+    type: single
+    difficulty: medium
+    bloom: apply
+    text: "Где задаётся условие на результат агрегатной функции, например COUNT(*) > 5?"
+    options: ["HAVING", "WHERE", "ORDER BY", "LIMIT"]
+    answer: "HAVING"
+
+  - id: Q11
+    topic: 9
+    outcome: РО2
+    type: truefalse
+    difficulty: medium
+    bloom: understand
+    text: "Коррелированный подзапрос выполняется один раз для всего внешнего запроса."
+    answer: false
+
+  - id: Q12
+    topic: 10
+    outcome: РО4
+    type: single
+    difficulty: hard
+    bloom: analyze
+    text: "В плане EXPLAIN ANALYZE запрос с WHERE email = '…' использует Seq Scan по таблице в 2 млн строк. Что вероятнее всего ускорит запрос?"
+    options: ["Индекс B-tree по столбцу email", "Увеличение LIMIT", "Замена WHERE на HAVING", "Индекс по первичному ключу"]
+    answer: "Индекс B-tree по столбцу email"
+
+  - id: Q13
+    topic: 11
+    outcome: РО1
+    type: matching
+    difficulty: medium
+    bloom: understand
+    text: "Сопоставьте свойство ACID и его смысл."
+    pairs:
+      - ["Атомарность", "Транзакция выполняется целиком или не выполняется совсем"]
+      - ["Согласованность", "После транзакции данные удовлетворяют всем ограничениям"]
+      - ["Изолированность", "Параллельные транзакции не мешают друг другу"]
+      - ["Долговечность", "Зафиксированные изменения сохраняются после сбоя"]
+
+  - id: Q14
+    topic: 11
+    outcome: РО4
+    type: single
+    difficulty: hard
+    bloom: evaluate
+    text: "Банковский перевод читает баланс дважды в одной транзакции и должен видеть одинаковое значение. Какой минимальный уровень изоляции это гарантирует?"
+    options: ["REPEATABLE READ", "READ COMMITTED", "READ UNCOMMITTED", "Уровень изоляции не влияет"]
+    answer: "REPEATABLE READ"
+
+  - id: Q15
+    topic: 12
+    outcome: РО2
+    type: single
+    difficulty: medium
+    bloom: understand
+    text: "Когда срабатывает триггер BEFORE UPDATE?"
+    options: ["До изменения строки", "После фиксации транзакции", "При создании таблицы", "Только при удалении строки"]
+    answer: "До изменения строки"
+
+  - id: Q16
+    topic: 13
+    outcome: РО4
+    type: multiple
+    difficulty: medium
+    bloom: evaluate
+    text: "Какие меры защищают от SQL-инъекций?"
+    options: ["Параметризованные запросы", "Минимальные права роли приложения", "Склейка строк запроса с вводом пользователя", "Отключение журнала ошибок"]
+    answer: ["Параметризованные запросы", "Минимальные права роли приложения"]
+
+  - id: Q17
+    topic: 14
+    outcome: РО4
+    type: open
+    difficulty: hard
+    bloom: evaluate
+    text: "Интернет-магазину нужно хранить карточки товаров с разным набором характеристик. Сравните реляционную и документную модели для этой задачи и обоснуйте выбор."
+    answer: "Названа гибкость схемы документной модели; названы сильные стороны реляционной (транзакции, связи, целостность); выбор обоснован требованиями задачи; упомянут гибридный вариант (JSONB в PostgreSQL)."
+    points: 3
+
+  - id: Q18
+    topic: 15
+    outcome: РО3
+    type: open
+    difficulty: hard
+    bloom: create
+    text: "Спроектируйте схему базы данных «Библиотека» (книги, авторы, читатели, выдачи) в 3НФ: перечислите таблицы, ключи и связи."
+    answer: "Таблицы книги, авторы, книги_авторы (M:N), читатели, выдачи; первичные и внешние ключи указаны; нет повторяющихся групп и транзитивных зависимостей."
+    points: 3

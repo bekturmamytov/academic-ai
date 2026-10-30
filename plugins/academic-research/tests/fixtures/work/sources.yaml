@@ -1,0 +1,39 @@
+# Тестовый список: verified выставлен заранее, чтобы тесты шли без сети.
+sources:
+  - key: lecun2015
+    type: article
+    authors: ["LeCun, Yann", "Bengio, Yoshua", "Hinton, Geoffrey"]
+    title: "Deep learning"
+    container: "Nature"
+    year: 2015
+    volume: "521"
+    issue: "7553"
+    pages: "436-444"
+    doi: "10.1038/nature14539"
+    lang: en
+    verified: true
+    verified_by: crossref
+  - key: he2016
+    type: conference
+    authors: ["He, Kaiming", "Zhang, Xiangyu", "Ren, Shaoqing", "Sun, Jian"]
+    title: "Deep Residual Learning for Image Recognition"
+    container: "2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)"
+    year: 2016
+    pages: "770-778"
+    publisher: "IEEE"
+    doi: "10.1109/CVPR.2016.90"
+    lang: en
+    verified: true
+    verified_by: crossref
+  - key: ivanov2020
+    type: book
+    authors: ["Иванов, Иван Иванович"]
+    title: "Основы вибродиагностики"
+    subtitle: "учебное пособие"
+    city: "Бишкек"
+    publisher: "Издательство"
+    year: 2020
+    total_pages: 320
+    lang: ru
+    verified: false
+    verify_note: "в OpenAlex и Crossref такой работы нет"
