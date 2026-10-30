@@ -2,8 +2,11 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "academic-ai",
   "description": "academicAI — помощник преподавателя вуза: силабусы, РУП, тесты, лекции, УМКД, научные работы, видео-лекции. Нормы КР, ru/ky/en.",
-  "owner": { "name": "AI Lab (Devline LLC)", "email": "info@ailab.kg", "url": "https://ailab.kg" },
-  "allowCrossMarketplaceDependenciesOn": ["anthropic-agent-skills"],
+  "owner": {
+    "name": "AI Lab (Devline LLC)",
+    "email": "info@ailab.kg",
+    "url": "https://ailab.kg"
+  },
   "plugins": [
     {
       "name": "academic",

@@ -77,10 +77,14 @@ claude plugin install academic --marketplace bekturmamytov/academic-ai
 | Реферат … кандидатская, статья | docx по ГОСТ (поля, Times 14, интервал 1,5) | Typst PDF чистовик |
 | Видео-лекция | mp4 1920×1080 | субтитры .srt |
 
-docx/xlsx/pptx/pdf генерируют **нативные skills Anthropic** из маркетплейса
+docx/xlsx/pptx/pdf генерируют **нативные skills Anthropic** (`document-skills@anthropic-agent-skills`) из маркетплейса
 `anthropics/skills`. Их лицензия не разрешает копировать к нам — ставятся
 рядом, наши skills на них опираются: содержание, структура и нормы КР — наши,
 сборка файла — их.
+
+Жёсткой зависимостью `document-skills` **не объявлен**: проверено 30.10 —
+зависимость из чужого маркетплейса сама не ставится, и плагин тогда не загружается.
+Ставит его установщик (`installer/PROMPT.md`, README) и `/academic:setup`.
 
 ## 7. Рабочая папка и паспорт курса
 
@@ -149,6 +153,4 @@ docx/xlsx/pptx/pdf генерируют **нативные skills Anthropic** и
 
 - Название вуза-клиента, ОС преподавателей, есть ли Moodle.
 - Образцы силабуса, РУП, УМКД, положения вуза.
-- Поддержка `dependencies` между плагинами разных маркетплейсов (document-skills) —
-  проверить на практике.
 - Кыргызский в `eleven_v3`.
