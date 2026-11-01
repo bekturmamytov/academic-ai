@@ -21,7 +21,9 @@ description: Ведёт собственную диссертацию препо
 `${CLAUDE_PLUGIN_ROOT}/references/structures.md`,
 `${CLAUDE_PLUGIN_ROOT}/references/nak-kr.md` (для кандидатской и автореферата),
 `${CLAUDE_PLUGIN_ROOT}/references/gost-format.md`. Положение вуза в `university/`
-— главнее.
+— главнее. Правила вуза из `university/settings.yaml` (стиль ссылок, порядок списка,
+объём ВКР `research.thesis_pages`, оформление) покажет
+`uv run "${CLAUDE_PLUGIN_ROOT}/scripts/settings.py" "<папка работы>"`; `status.py` сверяет объём с нормой вуза.
 
 ## 1. Где мы
 

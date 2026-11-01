@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from common import DataError, course_title, fail, new_document, out_dir, para, read_yaml, table, university_name  # noqa: E402
-from content_kit import KR_SCALE, add_runs, kr_grade, load_context, parse_inline  # noqa: E402
+from content_kit import add_runs, kr_grade, load_context, parse_inline, pass_thresholds, scale_rows  # noqa: E402
 from i18n import LABELS, t  # noqa: E402
 
 LABELS.update({
@@ -47,8 +47,8 @@ LABELS.update({
     "r_students": {"ru": "Студентов в ведомости", "ky": "Ведомосттогу студенттер", "en": "Students listed"},
     "r_graded": {"ru": "Аттестовано (есть балл)", "ky": "Аттестацияланган", "en": "Graded"},
     "r_avg": {"ru": "Средний балл", "ky": "Орточо упай", "en": "Mean score"},
-    "r_pass": {"ru": "Успеваемость (61 балл и выше)", "ky": "Өздөштүрүү (61 жана жогору)", "en": "Pass rate (61+)"},
-    "r_quality": {"ru": "Качество знаний (74 балла и выше)", "ky": "Билимдин сапаты (74 жана жогору)", "en": "Quality (74+)"},
+    "r_pass": {"ru": "Успеваемость (балл {} и выше)", "ky": "Өздөштүрүү ({} жана жогору)", "en": "Pass rate ({}+)"},
+    "r_quality": {"ru": "Качество знаний (балл {} и выше)", "ky": "Билимдин сапаты ({} жана жогору)", "en": "Quality ({}+)"},
     "r_distribution": {"ru": "Распределение оценок", "ky": "Баалардын бөлүштүрүлүшү", "en": "Grade distribution"},
     "r_count": {"ru": "Студентов", "ky": "Студенттер", "en": "Students"},
     "r_conclusions": {"ru": "Выводы и предложения", "ky": "Корутунду жана сунуштар", "en": "Conclusions"},
@@ -228,24 +228,26 @@ def course_report(doc, data: dict, spec: dict, lang: str, base: Path, warns: lis
                        (t("credits", lang), data.get("credits"))):
         if val:
             add_runs(para(doc, indent=False), [{"text": f"{label}: ", "b": True}, {"text": str(val)}])
-    counts = [0] * len(KR_SCALE)
+    scale = scale_rows(data)
+    counts = [0] * len(scale)
     for s in scores:
-        counts[kr_grade(s)[1]] += 1
+        counts[kr_grade(s, scale)[1]] += 1
     n = len(scores)
     li = {"ru": 3, "ky": 4, "en": 5}.get(lang, 3)
     doc.add_heading(f'1. {t("r_distribution", lang)}', level=2)
     table(doc, [t("letter", lang), t("points_range", lang), t("grade", lang), t("r_count", lang), "%"],
-               [[r[2], f"{r[0]}–{r[1]}", r[li], counts[i], f"{counts[i] * 100 / n:.1f}"] for i, r in enumerate(KR_SCALE)],
+               [[r[2], f"{r[0]}–{r[1]}", r[li], counts[i], f"{counts[i] * 100 / n:.1f}"] for i, r in enumerate(scale)],
                widths_cm=[2, 2.8, 5.2, 3, 3.5])
-    passed = sum(1 for s in scores if s >= 61)
-    quality = sum(1 for s in scores if s >= 74)
+    pass_min, quality_min = pass_thresholds(scale)
+    passed = sum(1 for s in scores if s >= pass_min)
+    quality = sum(1 for s in scores if s >= quality_min)
     doc.add_heading(f'2. {t("assessment", lang)}', level=2)
     table(doc, ["Показатель", "Значение"], [
         [t("r_students", lang), len(rows)],
         [t("r_graded", lang), n],
         [t("r_avg", lang), f"{sum(scores) / n:.1f}"],
-        [t("r_pass", lang), f"{passed * 100 / n:.1f} % ({passed} из {n})"],
-        [t("r_quality", lang), f"{quality * 100 / n:.1f} % ({quality} из {n})"],
+        [t("r_pass", lang).format(pass_min), f"{passed * 100 / n:.1f} % ({passed} из {n})"],
+        [t("r_quality", lang).format(quality_min), f"{quality * 100 / n:.1f} % ({quality} из {n})"],
     ], widths_cm=[10, 6.5])
     para(doc, t("r_source", lang).format(gpath.name), italic=True, size=12)
     doc.add_heading(f'3. {t("r_conclusions", lang)}', level=2)
@@ -274,7 +276,7 @@ def main() -> None:
         data = load_context(src, course)
         lang = spec.get("language") or data.get("language", "ru")
         kind = spec.get("type")
-        doc = new_document()
+        doc = new_document(data)
         if kind in ("individual_plan", "plan_report"):
             plan(doc, data, spec, lang, kind == "plan_report", warns)
         elif kind == "course_report":

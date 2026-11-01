@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from common import (DISSERTATIONS, SHORT_TYPES, DataError, fail, load_sources,  # noqa: E402
-                    load_work, out_dir, university_name, utf8_stdout)
+                    load_work, ministry_name, out_dir, university_name, utf8_stdout)
 from docxkit import (Ctx, add_inline, heading, new_document, page_break, para,  # noqa: E402
                      parse_cite, render_markdown, scan_citations, toc)
 from docx.enum.text import WD_ALIGN_PARAGRAPH  # noqa: E402
@@ -36,7 +36,7 @@ def _blank(doc, n: int) -> None:
 
 
 def _org_block(doc, w: dict, lang: str) -> None:
-    para(doc, t("ministry", lang), align="center", spacing=1.0)
+    para(doc, ministry_name(w, lang, t("ministry", lang)), align="center", spacing=1.0)
     para(doc, university_name(w, lang), bold=True, align="center", spacing=1.0)
     if w.get("faculty"):
         para(doc, w["faculty"], align="center", spacing=1.0)
@@ -254,7 +254,7 @@ def build(work_yaml: str | Path, part: str | None = None) -> tuple[Path, list[st
     ctx = Ctx(base_dir=w["_dir"], lang=lang, numbering=numbering, cite_fn=cite_fn, labels=labels,
               diss_style=diss)
 
-    doc = new_document(first_page_number=short)
+    doc = new_document(first_page_number=short, settings=w["_settings"])
     doc.core_properties.author = ", ".join(a.get("name", "") for a in w.get("authors") or [])
     doc.core_properties.title = w.get("title", "")
     if is_avto:

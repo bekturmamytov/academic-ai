@@ -5,6 +5,8 @@
 """Учебно-методическое пособие: manual.yaml + главы .md → out/manual.pdf (Typst) и out/manual.docx.
 
     uv run build_manual.py <manual.yaml> [--course course.yaml] [--no-pdf]
+
+Формат (paper) и кто рекомендует к изданию — manual.yaml, иначе university/settings.yaml → manual.
 """
 from __future__ import annotations
 
@@ -16,7 +18,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import DataError, fail, new_document, out_dir, para, read_yaml, university_name  # noqa: E402
+from common import (  # noqa: E402
+    DataError, city_name, fail, ministry_name, new_document, out_dir, para, read_yaml, settings, university_name,
+)
 from content_kit import (  # noqa: E402
     add_runs, add_toc, literature_status, load_context, mark_runs, parse_inline, parse_md, render_docx,
     split_frontmatter,
@@ -32,6 +36,11 @@ LABELS.update({
         "ru": "Рекомендовано к изданию Учёным советом ______________ (протокол № ___ от «___» ________ 20__ г.)",
         "ky": "______________ Илимий кеңеши тарабынан басмага сунушталган (№ ___ протокол, «___» ________ 20__ ж.)",
         "en": "Recommended for publication by the Academic Council of ______________ (minutes No. ___ of ________)",
+    },
+    "recommended_by": {
+        "ru": "Рекомендовано к изданию: {}, протокол № ___ от «___» ________ 20__ г.",
+        "ky": "Басмага сунушталган: {}, № ___ протокол, «___» ________ 20__ ж.",
+        "en": "Recommended for publication by: {}, minutes No. ___ of ________",
     },
 })
 TEMPLATE = Path(__file__).resolve().parent.parent / "skills" / "manual" / "templates" / "manual.typ"
@@ -81,8 +90,21 @@ def literature(spec: dict, data: dict, lang: str, warns: list[str]) -> list[list
     return out
 
 
-def build_docx(meta: dict, chapters: list[tuple[list[dict], Path]], lit: list[list[dict]], lang: str, path: Path):
-    doc = new_document()
+def recommended(spec: dict, data: dict, lang: str) -> str:
+    """Строка «Рекомендовано к изданию…»: manual.yaml, иначе орган из settings.yaml → manual.approval_body."""
+    if spec.get("recommended"):
+        return str(spec["recommended"])
+    from settings import DEFAULTS, lang_text
+
+    body = settings(data)["manual"]["approval_body"]
+    if body == DEFAULTS["manual"]["approval_body"]:
+        return t("recommended", lang)
+    return t("recommended_by", lang).format(lang_text(body, lang))
+
+
+def build_docx(meta: dict, chapters: list[tuple[list[dict], Path]], lit: list[list[dict]], lang: str, path: Path,
+               data: dict | None = None):
+    doc = new_document(data)
     para(doc, meta["ministry"], align="center", size=12)
     para(doc, meta["university"], bold=True, align="center")
     if meta["department"]:
@@ -168,12 +190,13 @@ def main() -> None:
             "authors": [str(x) for x in authors], "udk": placeholders["udk"], "bbk": placeholders["bbk"],
             "isbn_line": placeholders["isbn"], "author_sign": str(spec.get("author_sign") or ""),
             "reviewers": [str(r) for r in spec.get("reviewers") or []],
-            "recommended": str(spec.get("recommended") or t("recommended", lang)),
+            "recommended": recommended(spec, data, lang),
             "annotation": " ".join(str(spec.get("annotation") or "").split()),
-            "city": str(spec.get("city") or prof.get("city", "")),
-            "year": str(spec.get("year") or ""), "paper": "a4" if str(spec.get("paper", "a5")).lower() == "a4" else "a5",
+            "city": str(spec.get("city") or city_name(data)),
+            "year": str(spec.get("year") or ""),
+            "paper": "a4" if str(spec.get("paper") or settings(data)["manual"]["paper"]).lower() == "a4" else "a5",
             "lang": TYPST_LANG.get(lang, "ru"),
-            "ministry": t("ministry", lang), "university": university_name(data, lang),
+            "ministry": ministry_name(data, lang), "university": university_name(data, lang),
             "department": f'{t("department", lang)} «{dept}»' if dept else "",
         }
         if not meta["reviewers"]:
@@ -186,7 +209,7 @@ def main() -> None:
                                                      "literature": lit}, ensure_ascii=False), encoding="utf-8")
         shutil.copyfile(TEMPLATE, build / "manual.typ")
         docx_path = build.parent / "manual.docx"
-        build_docx(meta, chapters_docx, lit, lang, docx_path)
+        build_docx(meta, chapters_docx, lit, lang, docx_path, data)
         print(docx_path)
         if not a.no_pdf:
             typst = shutil.which("typst")

@@ -54,9 +54,13 @@ uv run "${CLAUDE_PLUGIN_ROOT}/scripts/build_syllabus.py" "<папка курса
 - Файл: `<папка курса>/out/syllabus_<lang>.docx`.
 - Ошибка «закройте файл в Word» — попроси закрыть документ и запусти снова.
 
-Лого и название вуза берутся из `university/brand.yaml` рабочей папки, факультет,
-кафедра и город — из `profile.yaml`. Если вуз дал свой шаблон силлабуса
-(`university/`), сравни разделы с ним и скажи, чего не хватает или что лишнее.
+Правила вуза — `university/settings.yaml` рабочей папки (справочник —
+`${CLAUDE_PLUGIN_ROOT}/references/university-settings.md`): название, министерство и
+город на титуле, «УТВЕРЖДАЮ» / «СОГЛАСОВАНО», поля и шрифт, шкала оценок, скрытые
+разделы (`syllabus.hide_sections`), свои разделы (`syllabus.extra_sections`), политика
+по умолчанию (`syllabus.policies`; текст курса главнее). Факультет и кафедра — из
+`profile.yaml`. Вуз дал свой образец силлабуса, а настроек нет — предложи
+`/academic-core:university`, не правь docx руками.
 
 ## 5. Самопроверка
 

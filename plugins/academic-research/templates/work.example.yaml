@@ -20,7 +20,7 @@ supervisor:                  # научный руководитель (для �
   degree: "доктор технических наук, профессор"
 consultant: {}               # научный консультант — если есть
 
-university: ""               # пусто — из profile.yaml / university/brand.yaml
+university: ""               # пусто — из university/settings.yaml / profile.yaml
 faculty: ""
 department: ""
 city: "Бишкек"

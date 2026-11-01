@@ -1,4 +1,4 @@
-"""Общий код скриптов academic-research: паспорт работы, профиль, бренд вуза.
+"""Общий код скриптов academic-research: паспорт работы, профиль, настройки вуза.
 
 Скрипты импортируют его так:
     sys.path.insert(0, str(Path(__file__).parent)); from common import ...
@@ -12,19 +12,20 @@ from pathlib import Path
 
 import yaml
 
+from settings import DataError, lang_text, load_settings
+from settings import university_name as settings_university_name
+
 WORK_TYPES = ("referat", "doklad", "tezisy", "statya", "kursovaya", "diplom",
               "magistr", "kandidat", "avtoreferat")
 STYLES = ("gost", "apa", "ieee")
 SHORT_TYPES = ("statya", "tezisy", "doklad")
 DISSERTATIONS = ("magistr", "kandidat")
+# Тип работы → ключ объёма в settings.yaml → research.thesis_pages.
+THESIS_LEVELS = {"kursovaya": "coursework", "diplom": "bachelor", "magistr": "master", "kandidat": "phd"}
 
 DATA_MARK = "НУЖНЫ ВАШИ ДАННЫЕ"
 SOURCE_MARK = "НУЖЕН ИСТОЧНИК"
 UNVERIFIED_MARK = "НЕ ПРОВЕРЕНО"
-
-
-class DataError(Exception):
-    """Ошибка в данных пользователя — печатается по-русски, без трейсбека."""
 
 
 def fail(msg: str) -> None:
@@ -66,41 +67,58 @@ def find_up(start: Path, name: str) -> Path | None:
 
 
 def load_work(work_yaml: str | Path) -> dict:
-    """Паспорт работы + профиль + бренд вуза в одном словаре.
+    """Паспорт работы + профиль + настройки вуза в одном словаре.
 
-    Служебные ключи: _dir (папка работы), _profile, _brand, _brand_dir.
+    Служебные ключи: _dir (папка работы), _profile, _settings (university/settings.yaml
+    поверх норм КР), _brand_dir. Порядок: work.yaml > settings.yaml > profile.yaml.
     """
     path = Path(work_yaml).expanduser().resolve()
     data = read_yaml(path)
     if data.get("type") not in WORK_TYPES:
         raise DataError(f"type = «{data.get('type')}», а нужно одно из: {', '.join(WORK_TYPES)}")
-    style = data.setdefault("citation_style", "gost")
+    s = load_settings(path.parent)
+    data["_settings"] = s
+    style = data.setdefault("citation_style", s["research"]["citation_style"])
     if style not in STYLES:
         raise DataError(f"citation_style = «{style}», а нужно gost, apa или ieee")
+    if not data.get("bib_order") and s["research"]["bib_order"] != "auto":
+        data["bib_order"] = s["research"]["bib_order"]
     data["_dir"] = path.parent
     prof = find_up(path.parent, "profile.yaml")
     data["_profile"] = read_yaml(prof) if prof else {}
-    uni = find_up(path.parent, "university")
-    brand_file = uni / "brand.yaml" if uni else None
-    data["_brand"] = read_yaml(brand_file) if brand_file and brand_file.exists() else {}
-    data["_brand_dir"] = uni
+    data["_brand_dir"] = s["_dir"]
     p = data["_profile"]
     if not data.get("authors"):
         data["authors"] = [{k: p.get(k, "") for k in ("name", "degree", "position", "email")}
-                           | {"affiliation": p.get("university", ""), "city": p.get("city", "")}]
+                           | {"affiliation": s["university"]["name"] or p.get("university", ""),
+                              "city": s["university"]["city"] or p.get("city", "")}]
+    if not data.get("city"):
+        data["city"] = s["university"]["city"]
     for k in ("faculty", "department", "city"):
         if not data.get(k):
             data[k] = p.get(k, "")
-    data.setdefault("language", p.get("language", "ru"))
+    data.setdefault("language", p.get("language") or s["environment"]["languages"][0])
     return data
 
 
 def university_name(data: dict, lang: str) -> str:
+    """Вуз: work.yaml → university, settings.yaml / brand.yaml на языке lang, иначе profile.yaml."""
     if data.get("university"):
         return data["university"]
-    b = data.get("_brand", {})
-    key = {"ru": "name", "ky": "name_ky", "en": "name_en"}.get(lang, "name")
-    return b.get(key) or b.get("name") or data.get("_profile", {}).get("university", "")
+    name = settings_university_name(data.get("_settings") or load_settings(None), lang)
+    return name or data.get("_profile", {}).get("university", "")
+
+
+def thesis_pages(data: dict) -> tuple[int, int] | None:
+    """Объём работы по нормам вуза (страниц от, до) или None, если вуз его не задал."""
+    level = THESIS_LEVELS.get(data.get("type", ""))
+    rng = (data.get("_settings") or load_settings(None))["research"]["thesis_pages"].get(level or "")
+    return (int(rng[0]), int(rng[1])) if rng else None
+
+
+def ministry_name(data: dict, lang: str, default: str) -> str:
+    """Министерство на титуле: settings.yaml → university.ministry, иначе default (норма КР)."""
+    return lang_text((data.get("_settings") or load_settings(None))["university"].get("ministry"), lang, default)
 
 
 def out_dir(data: dict) -> Path:

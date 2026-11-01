@@ -7,7 +7,8 @@
     uv run md_docx.py "<файл>.md" [--org] [--out "<файл>.docx"]
 
 # Заголовок — по центру жирным, ## — подраздел, таблицы | … |, списки, **жирный**, *курсив*.
---org — шапка: министерство, вуз, факультет, кафедра из profile.yaml (ищется выше по дереву).
+--org — шапка: министерство, вуз, факультет, кафедра из profile.yaml (ищется выше по дереву);
+министерство и вуз — из university/settings.yaml, если он есть. Оформление — settings.yaml → document.
 """
 from __future__ import annotations
 
@@ -17,9 +18,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import DataError, fail, find_up, read_yaml, utf8_stdout  # noqa: E402
+from common import DataError, fail, find_up, ministry_name, read_yaml, university_name, utf8_stdout  # noqa: E402
 from docxkit import Ctx, heading, new_document, para, render_markdown  # noqa: E402
 from i18n import t  # noqa: E402
+from settings import load_settings  # noqa: E402
 
 
 def build(md: Path, out: Path | None = None, org: bool = False) -> Path:
@@ -28,12 +30,14 @@ def build(md: Path, out: Path | None = None, org: bool = False) -> Path:
     text = md.read_text(encoding="utf-8")
     prof_path = find_up(md.parent, "profile.yaml")
     prof = read_yaml(prof_path) if prof_path else {}
-    lang = prof.get("language", "ru")
-    doc = new_document()
+    s = load_settings(md.parent)
+    lang = prof.get("language") or s["environment"]["languages"][0]
+    doc = new_document(settings=s)
     if org:
-        para(doc, t("ministry", lang), align="center", spacing=1.0)
-        if prof.get("university"):
-            para(doc, prof["university"], bold=True, align="center", spacing=1.0)
+        ctx = {"_settings": s, "_profile": prof}
+        para(doc, ministry_name(ctx, lang, t("ministry", lang)), align="center", spacing=1.0)
+        if university_name(ctx, lang):
+            para(doc, university_name(ctx, lang), bold=True, align="center", spacing=1.0)
         if prof.get("faculty"):
             para(doc, prof["faculty"], align="center", spacing=1.0)
         if prof.get("department"):

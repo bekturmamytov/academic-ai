@@ -12,6 +12,7 @@ LABELS: dict[str, dict[str, str]] = {
     "department": {"ru": "Кафедра", "ky": "Кафедра", "en": "Department of"},
     "approve": {"ru": "«УТВЕРЖДАЮ»", "ky": "«БЕКИТЕМИН»", "en": "APPROVED"},
     "approve_role": {"ru": "Заведующий кафедрой", "ky": "Кафедра башчысы", "en": "Head of Department"},
+    "agreed": {"ru": "«СОГЛАСОВАНО»", "ky": "«МАКУЛДАШЫЛДЫ»", "en": "AGREED"},
     "discipline": {"ru": "по дисциплине", "ky": "сабак боюнча", "en": "course"},
     "course_year": {"ru": "курс", "ky": "курс", "en": "year"},
     "semester": {"ru": "семестр", "ky": "семестр", "en": "semester"},

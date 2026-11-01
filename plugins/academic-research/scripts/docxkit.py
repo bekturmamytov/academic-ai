@@ -16,7 +16,7 @@ from docx.enum.section import WD_ORIENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK, WD_COLOR_INDEX
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Cm, Pt
+from docx.shared import Cm, Mm, Pt
 
 MARKS = r"\[(?:НУЖНЫ ВАШИ ДАННЫЕ|НУЖЕН ИСТОЧНИК|ТЕКСТ НЕ НАПИСАН|НЕ ПРОВЕРЕНО|НЕТ В СПИСКЕ)[^\]]*\]"
 MARK_RE = re.compile(MARKS, re.I)
@@ -62,17 +62,27 @@ def _set_fonts(style, name: str = "Times New Roman") -> None:
         fonts.attrib.pop(qn(a), None)
 
 
-def new_document(*, first_page_number: bool = True):
-    """Пустой docx: A4, Times New Roman 14, интервал 1,5, поля 30/15/20/20, номер страницы внизу по центру."""
+def new_document(*, first_page_number: bool = True, settings: dict | None = None):
+    """Пустой docx: A4, оформление из settings (university/settings.yaml → document);
+    по умолчанию Times New Roman 14, интервал 1,5, поля 30/15/20/20, номер страницы внизу по центру."""
+    if settings is None:
+        from settings import load_settings
+
+        settings = load_settings(None)
+    ds = settings["document"]
+    font, size, m = ds["font"], ds["size"], ds["margins_mm"]
     doc = Document()
+    doc._table_size = ds["table_size"]
     for s in doc.sections:
         s.orientation = WD_ORIENT.PORTRAIT
         s.page_width, s.page_height = Cm(21), Cm(29.7)
-        s.left_margin, s.right_margin = Cm(3), Cm(1.5)
-        s.top_margin, s.bottom_margin = Cm(2), Cm(2)
+        s.left_margin, s.right_margin = Mm(m["left"]), Mm(m["right"])
+        s.top_margin, s.bottom_margin = Mm(m["top"]), Mm(m["bottom"])
         s.different_first_page_header_footer = not first_page_number
-        p = s.footer.paragraphs[0]
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        if ds["page_numbers"] == "none":
+            continue
+        p = (s.header if ds["page_numbers"].startswith("top") else s.footer).paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.RIGHT if ds["page_numbers"].endswith("right") else WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.first_line_indent = Cm(0)
         _field(p.add_run(), "PAGE", "1")
 
@@ -83,35 +93,35 @@ def new_document(*, first_page_number: bool = True):
         for a in list(fonts.attrib):
             del fonts.attrib[a]
         for a in ("w:ascii", "w:hAnsi", "w:eastAsia", "w:cs"):
-            fonts.set(qn(a), "Times New Roman")
+            fonts.set(qn(a), font)
 
     st = doc.styles["Normal"]
-    _set_fonts(st)
-    st.font.size = Pt(14)
+    _set_fonts(st, font)
+    st.font.size = Pt(size)
     pf = st.paragraph_format
-    pf.line_spacing = 1.5
+    pf.line_spacing = ds["line_spacing"]
     pf.space_before = Pt(0)
     pf.space_after = Pt(0)
-    pf.first_line_indent = Cm(1.25)
+    pf.first_line_indent = Cm(ds["indent_cm"])
     pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     pf.widow_control = True
     for lvl in (1, 2, 3):
         h = doc.styles[f"Heading {lvl}"]
-        _set_fonts(h)
-        h.font.size = Pt(14)
+        _set_fonts(h, font)
+        h.font.size = Pt(size)
         h.font.bold = True
         h.font.italic = False
         h.font.color.rgb = None
         hp = h.paragraph_format
-        hp.first_line_indent = Cm(0) if lvl == 1 else Cm(1.25)
-        hp.line_spacing = 1.5
+        hp.first_line_indent = Cm(0) if lvl == 1 else Cm(ds["indent_cm"])
+        hp.line_spacing = ds["line_spacing"]
         hp.space_before = Pt(12 if lvl > 1 else 0)
         hp.space_after = Pt(12 if lvl == 1 else 6)
         hp.alignment = WD_ALIGN_PARAGRAPH.CENTER if lvl == 1 else WD_ALIGN_PARAGRAPH.LEFT
         hp.keep_with_next = True
     for name in ("Title", "Caption"):
         if name in [s.name for s in doc.styles]:
-            _set_fonts(doc.styles[name])
+            _set_fonts(doc.styles[name], font)
 
     cp = doc.core_properties  # шаблон python-docx подписывает себя — документ принадлежит автору
     cp.author = cp.last_modified_by = cp.comments = cp.title = cp.subject = cp.keywords = ""
@@ -170,7 +180,7 @@ def toc(doc, title: str, hint: str) -> None:
 
 
 def table(doc, header: list[str], rows: list[list], widths_cm: list[float] | None = None):
-    """Таблица 12 pt, интервал 1,0, шапка жирная."""
+    """Таблица 12 pt (settings.yaml → document.table_size), интервал 1,0, шапка жирная."""
     tbl = doc.add_table(rows=1, cols=len(header))
     tbl.style = "Table Grid"
     for i, h in enumerate(header):
@@ -188,7 +198,7 @@ def table(doc, header: list[str], rows: list[list], widths_cm: list[float] | Non
                 p.paragraph_format.line_spacing = 1.0
                 p.alignment = WD_ALIGN_PARAGRAPH.LEFT
                 for run in p.runs:
-                    run.font.size = Pt(12)
+                    run.font.size = Pt(getattr(doc, "_table_size", 12))
                     run.bold = ri == 0
     return tbl
 

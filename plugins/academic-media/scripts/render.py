@@ -24,7 +24,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from common import DataError, academic_home, ensure_tools, fail, get_setting, load_slides, media_duration, t
+from common import (DataError, academic_home, ensure_tools, fail, get_setting, load_slides, media_duration, t,
+                    university_info, warn)
 from narrate import build_timeline, estimate, to_srt
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
@@ -203,6 +204,9 @@ def main() -> None:
             print(estimate(deck, a.mode))
             return
         ensure_tools(need_node=True, need_ffmpeg=a.mode != "none")
+        if university_info(src.parent).get("type") == "private":
+            warn("вуз частный (university/settings.yaml): если в нём больше 3 сотрудников, для Remotion нужна "
+                 "Company License за счёт вуза — см. README, раздел о лицензиях")
         lang = a.lang or deck["lang"] or "ru"
         out = Path(a.out).expanduser().resolve() if a.out else default_out(src)
         build = out / ".build" / src.stem

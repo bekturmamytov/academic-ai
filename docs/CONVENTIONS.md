@@ -29,8 +29,17 @@ plugins/<плагин>/skills/<имя>/
 - Курс: `<папка курса>/course.yaml` — схема `plugins/academic-core/references/course-schema.md`,
   пример `plugins/academic-core/templates/course.example.yaml`.
 - Преподаватель: `profile.yaml` в рабочей папке (или выше по дереву), схема — в skill `academic:setup`.
-- Вуз: `university/` в рабочей папке — `brand.yaml` (`name`, `name_ky`, `name_en`,
-  `logo`, `color`), положения вуза (docx/pdf) — необязательно.
+- Вуз: `university/` в рабочей папке — `settings.yaml` (правила вуза: название,
+  оформление, «УТВЕРЖДАЮ», шкала и БРС, форма силлабуса, тесты, наука, пособие),
+  логотип, образцы и положения в `samples/` — всё необязательно. Справочник ключей —
+  `plugins/academic-core/references/university-settings.md`, образец —
+  `plugins/academic-core/templates/settings.example.yaml`, заполняет
+  `/academic-core:university`. Старый `brand.yaml` (`name`, `name_ky`, `name_en`,
+  `logo`, `color`) читается и дальше.
+- Порядок важности: `course.yaml` / `work.yaml` > `university/settings.yaml` >
+  нормы КР. Скрипт не зашивает норму, которую вуз может поменять, — берёт её из
+  `settings.py` (загрузчик; копия в `academic-core/scripts/` и `academic-research/scripts/`
+  одинаковая, тест сверяет). Новая норма вуза — ключ в `settings.py`, образце и справочнике.
 - Наука: `<папка работы>/work.yaml` — схема в `plugins/academic-research/references/work-schema.md`.
 - Промежуточные данные skill пишет в YAML рядом (`tests.yaml`, `lectures/NN.md`),
   итоговые файлы — в `out/`.
@@ -68,13 +77,14 @@ plugins/<плагин>/skills/<имя>/
 
 - Официальные docx: Times New Roman 14 (таблицы 12), интервал 1,5 (таблицы 1,0),
   поля: левое 30 мм, правое 15, верх/низ 20; абзацный отступ 1,25 см;
-  выравнивание по ширине; нумерация страниц внизу по центру.
-- Титульный лист: министерство, вуз (из `university/brand.yaml` или `profile.yaml`),
+  выравнивание по ширине; нумерация страниц внизу по центру. Это нормы по умолчанию —
+  вуз меняет их в `university/settings.yaml` → `document`.
+- Титульный лист: министерство, вуз (из `university/settings.yaml` или `profile.yaml`),
   факультет, кафедра, «УТВЕРЖДАЮ» (для силлабуса/РУП/УМКД), название, город, год.
 - Подписи по-языку: тексты-метки (заголовки разделов, «Утверждаю», «Кредиты»)
   — в словаре `scripts/i18n.py` с ключами ru/ky/en, не зашиты в код по месту.
 - Никакого «academicAI» / «AI Lab» в документах пользователя.
-- Презентации: 16:9, белый фон, один акцентный цвет (`brand.yaml` → `color`,
+- Презентации: 16:9, белый фон, один акцентный цвет (`settings.yaml` → `brand.color`,
   по умолчанию `#1F4E79`), заголовок ≤ 8 слов, ≤ 6 пунктов на слайд, заметки
   докладчика — полный текст.
 

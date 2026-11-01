@@ -13,7 +13,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import DataError, fail, find_up, load_course, new_document, out_dir, para, read_yaml, table, title_page  # noqa: E402
+from common import (  # noqa: E402
+    DataError, fail, find_up, load_course, load_settings, new_document, out_dir, para, read_yaml, table, title_page,
+)
 from content_kit import add_runs, literature_status, parse_inline  # noqa: E402
 from i18n import LABELS, t  # noqa: E402
 
@@ -135,7 +137,7 @@ def build(spec: dict, data: dict | None, base: Path) -> tuple[Path, list[str]]:
     if not tasks:
         raise DataError("в srs.yaml нет списка tasks")
     warns: list[str] = []
-    doc = new_document()
+    doc = new_document(data or load_settings(base))
     if data:
         title_page(doc, data, lang, spec.get("title") or t("srs_title", lang), approve=False)
     else:

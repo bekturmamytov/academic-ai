@@ -25,7 +25,7 @@
 | `authors[]` | да | `name`, `degree`, `position`, `affiliation`, `city`, `email`, `orcid`. Первый — автор (берётся из `profile.yaml`); в статье — все соавторы по порядку |
 | `supervisor` | для работ с руководителем | `name`, `degree` |
 | `consultant` | нет | научный консультант |
-| `university`, `faculty`, `department`, `city` | нет | пусто — из `profile.yaml` и `university/brand.yaml` |
+| `university`, `faculty`, `department`, `city` | нет | пусто — из `university/settings.yaml` (или старого `brand.yaml`) и `profile.yaml` |
 | `year` | да | год защиты / публикации |
 | `specialty` | magistr, kandidat, avtoreferat | `code` — шифр по номенклатуре НАК КР, `name`, `science` — отрасль в родительном падеже («технических наук») |
 | `program` | kursovaya, diplom, magistr | направление подготовки |
@@ -36,8 +36,8 @@
 | `journal` | statya, tezisy | см. ниже |
 | `conference` | doklad, tezisy | `name`, `date`, `place`, `section` |
 | `udc` | статья | УДК — подбирает автор или библиотека |
-| `citation_style` | да | `gost` (ГОСТ Р 7.0.100-2018) · `apa` (APA 7) · `ieee` |
-| `bib_order` | нет | `alpha` — по алфавиту, кириллица впереди (по умолчанию для gost и apa); `cite` — по порядку первой ссылки (по умолчанию для ieee) |
+| `citation_style` | да | `gost` (ГОСТ Р 7.0.100-2018) · `apa` (APA 7) · `ieee`; нет — `research.citation_style` из `university/settings.yaml`, иначе `gost` |
+| `bib_order` | нет | `alpha` — по алфавиту, кириллица впереди (по умолчанию для gost и apa); `cite` — по порядку первой ссылки (по умолчанию для ieee); нет — `research.bib_order` вуза |
 | `numbering` | нет | `chapter` — «Рисунок 1.2», «Таблица 2.1» (по умолчанию для magistr, kandidat); `through` — сквозная |
 | `sources` | да | путь к `sources.yaml` |
 | `data[]` | нет | `file`, `description` — собственные данные автора. Результаты и выводы пишутся **только** по ним |

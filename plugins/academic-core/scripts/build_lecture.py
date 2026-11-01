@@ -15,7 +15,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import DataError, course_title, fail, load_course, new_document, out_dir, para, title_page  # noqa: E402
+from common import (  # noqa: E402
+    DataError, course_title, fail, load_course, load_settings, new_document, out_dir, para, title_page,
+)
 from content_kit import (  # noqa: E402
     MARKER_RE, add_toc, find_course, literature_status, parse_md, render_docx, runs_text,
     split_frontmatter,
@@ -93,7 +95,7 @@ def lectures_out(data: dict | None, anchor: Path) -> Path:
 
 def build_one(md: Path, data: dict | None) -> tuple[Path, list[str], int]:
     fm, blocks, warns = load_lecture(md, data)
-    doc = new_document()
+    doc = new_document(data or load_settings(md))
     if data:
         lang = data.get("language", "ru")
         para(doc, f'{t("discipline", lang).capitalize()}: «{course_title(data, lang)}»', italic=True, align="right", size=12)
@@ -106,7 +108,7 @@ def build_one(md: Path, data: dict | None) -> tuple[Path, list[str], int]:
 
 
 def build_book(files: list[Path], data: dict | None, anchor: Path) -> tuple[Path, list[str], int]:
-    doc = new_document()
+    doc = new_document(data or load_settings(anchor))
     lang = (data or {}).get("language", "ru")
     if data:
         title_page(doc, data, lang, t("lectures_book", lang), approve=False)

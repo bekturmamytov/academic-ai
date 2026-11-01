@@ -7,12 +7,16 @@
 
 Работает в Claude Desktop (вкладка Code) и в VS Code.
 
+**Руководство пользователя (PDF, 48 стр.):** [`docs/guide/academicAI-guide-ru.pdf`](docs/guide/academicAI-guide-ru.pdf) —
+установка на macOS и Windows, настройка под вуз, все команды с примерами, частые ошибки.
+
 ## Установка
 
 **Проще всего:** откройте Claude Code и вставьте текст из
 [`installer/PROMPT.md`](installer/PROMPT.md) — Claude всё поставит сам.
 
-**Вручную, в терминале:**
+**Вручную, в терминале** (Claude Code нужен и в терминале, даже если работаете в Desktop —
+плагины ставятся оттуда; если `--marketplace` не принят — обновите Claude Code):
 
 ```
 claude plugin marketplace add anthropics/skills
@@ -20,7 +24,8 @@ claude plugin install document-skills@anthropic-agent-skills
 claude plugin install academic --marketplace bekturmamytov/academic-ai
 ```
 
-Перезапустите Claude и выполните `/academic:setup`.
+Перезапустите Claude и выполните `/academic:setup`. Чтобы документы шли по правилам
+вашего вуза (поля, «УТВЕРЖДАЮ», шкала оценок), выполните `/academic-core:university`.
 
 ## Что внутри
 
@@ -39,6 +44,7 @@ claude plugin install academic --marketplace bekturmamytov/academic-ai
 | Команда | Что делает | Результат |
 |---|---|---|
 | `/academic-core:new-course` | паспорт курса: вопросы или перенос старого силлабуса | `course.yaml` |
+| `/academic-core:university` | правила своего вуза по образцам или вопросам: форма силлабуса, шкала БРС, поля и шрифт, «УТВЕРЖДАЮ», Moodle | `university/settings.yaml` |
 | `/academic-core:syllabus` | силлабус по нормам КР, ru / ky / en | docx |
 | `/academic-core:rup` | рабочая программа и тематический план с часами | xlsx, docx |
 | `/academic-core:tests` | банк тестов по темам и результатам обучения, варианты, ключ | xlsx, docx, Moodle GIFT / XML |
@@ -76,5 +82,5 @@ claude plugin install academic --marketplace bekturmamytov/academic-ai
 организации больше 3 сотрудников — нужна [Company License](https://www.remotion.pro/license)
 Remotion. Без видео-лекций Remotion не ставится и не нужен.
 
-> Статус: beta (v0.1.1). Шаблоны построены по общим нормам КР — сверяйте с
+> Статус: beta (v0.2.0). Шаблоны построены по общим нормам КР — сверяйте с
 > положениями своего вуза. Спецификация — [`docs/SPEC.md`](docs/SPEC.md).

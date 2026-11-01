@@ -313,9 +313,9 @@ def add_toc(doc, lang: str, levels: str = "1-2", *, new_page: bool = False):
         settings.append(uf)
 
 
-# ---------- шкала оценок КР ----------
+# ---------- шкала оценок ----------
 
-KR_SCALE = [  # (от, до, буква, оценка ru, ky, en)
+KR_SCALE = [  # (от, до, буква, оценка ru, ky, en) — типовая шкала КР
     (87, 100, "A", "отлично", "эң жакшы", "excellent"),
     (80, 86, "B", "хорошо", "жакшы", "good"),
     (74, 79, "C", "хорошо", "жакшы", "good"),
@@ -325,12 +325,29 @@ KR_SCALE = [  # (от, до, буква, оценка ru, ky, en)
 ]
 
 
-def kr_grade(score: float) -> tuple[str, int]:
-    """Буква и индекс строки KR_SCALE для балла 0–100."""
-    for i, row in enumerate(KR_SCALE):
+def scale_rows(data: dict | None) -> list[tuple]:
+    """Действующая шкала в виде KR_SCALE: course.yaml → grading_scale, settings.yaml → grading.scale, КР."""
+    from course_check import grading_scale, scale_grade
+
+    rows = sorted(grading_scale(data or {}), key=lambda r: -r["min"])
+    return [(r["min"], r["max"], r.get("letter", ""), *(scale_grade(r, lg) for lg in ("ru", "ky", "en")))
+            for r in rows]
+
+
+def kr_grade(score: float, scale: list[tuple] | None = None) -> tuple[str, int]:
+    """Буква и индекс строки шкалы (по умолчанию KR_SCALE) для балла 0–100."""
+    scale = scale or KR_SCALE
+    for i, row in enumerate(scale):
         if score >= row[0]:
             return row[2], i
-    return "F", len(KR_SCALE) - 1
+    return scale[-1][2], len(scale) - 1
+
+
+def pass_thresholds(scale: list[tuple]) -> tuple[int, int]:
+    """(успеваемость, качество): нижняя граница положительных оценок и «хорошо» и выше."""
+    passing = [r[0] for r in scale if r[0] > 0] or [61]
+    good = [r[0] for r in scale if r[3].startswith(("отлично", "хорошо"))] or [74]
+    return min(passing), min(good)
 
 
 # ---------- литература из паспорта ----------
@@ -380,21 +397,19 @@ def load_yaml_doc(path: str | Path) -> dict:
 
 def load_context(start: Path, course: str | Path | None = None) -> dict:
     """Паспорт курса, если он есть; иначе только профиль и бренд вуза (для пособий и отчётов)."""
-    from common import load_course
+    from common import load_course, university_context
 
     start = start if start.is_dir() else start.parent
     path = Path(course).expanduser().resolve() if course else find_course(start)
     if path:
         return load_course(path)
     prof = find_up(start, "profile.yaml")
-    uni = find_up(start, "university")
-    brand = uni / "brand.yaml" if uni else None
     profile = read_yaml(prof) if prof else {}
+    ctx = university_context(start)
     return {
-        "_dir": start, "_profile": profile, "_brand_dir": uni,
-        "_brand": read_yaml(brand) if brand and brand.exists() else {},
+        "_dir": start, "_profile": profile, **ctx,
         "teacher": {k: profile.get(k, "") for k in ("name", "degree", "position", "email")},
-        "language": profile.get("language", "ru"),
+        "language": profile.get("language") or ctx["_settings"]["environment"]["languages"][0],
     }
 
 

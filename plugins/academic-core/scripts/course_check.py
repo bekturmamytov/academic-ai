@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import re
 
-from common import CREDIT_HOURS, HOUR_KINDS, check_hours
+from common import HOUR_KINDS, check_hours, credit_hours, settings
 
 LANGS = ("ru", "ky", "en")
 BLOOM_LEVELS = ("remember", "understand", "apply", "analyze", "evaluate", "create")
@@ -22,7 +22,8 @@ ENUMS = {
     "form": ("очная", "заочная", "дистанционная"),
 }
 
-# Шкала по умолчанию (типовая для вузов КР; вуз может задать свою в grading_scale).
+# Шкала по умолчанию (типовая для вузов КР). Вуз задаёт свою в university/settings.yaml →
+# grading.scale, курс — в course.yaml → grading_scale.
 KR_DEFAULT_SCALE = [
     {"min": 87, "max": 100, "letter": "A", "grade": {"ru": "отлично", "ky": "эң жакшы", "en": "excellent"}},
     {"min": 80, "max": 86, "letter": "B", "grade": {"ru": "хорошо", "ky": "жакшы", "en": "good"}},
@@ -130,9 +131,10 @@ def bloom_verb(text: str, lang: str) -> tuple[str, set[str] | None]:
 # ---------- оценивание ----------
 
 def grading_scale(data: dict) -> list[dict]:
+    """course.yaml → grading_scale; kr_default или нет — шкала вуза (settings.yaml), иначе КР."""
     gs = data.get("grading_scale", "kr_default")
     if gs in (None, "", "kr_default"):
-        return KR_DEFAULT_SCALE
+        return settings(data)["grading"]["scale"] or KR_DEFAULT_SCALE
     return gs
 
 
@@ -299,7 +301,7 @@ def validate_course(data: dict) -> tuple[list[str], list[str]]:
     err.extend(check_hours(data))
     if _is_int(credits) and hours:
         aud = sum(int(hours.get(k, 0) or 0) for k in ("lectures", "practicals", "labs"))
-        if credits * CREDIT_HOURS and aud > credits * CREDIT_HOURS * 0.7:
+        if credits * credit_hours(data) and aud > credits * credit_hours(data) * 0.7:
             warn.append(f"hours: аудиторных {aud} ч — больше 70% объёма, проверьте по учебному плану")
 
     # оценивание

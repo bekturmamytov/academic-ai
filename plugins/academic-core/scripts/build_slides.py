@@ -15,7 +15,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import DataError, course_title, fail, find_up, load_course, out_dir, read_yaml, university_name  # noqa: E402
+from common import (  # noqa: E402
+    DataError, city_name, course_title, fail, find_up, load_course, out_dir, read_yaml, university_context,
+    university_name,
+)
 from i18n import LABELS, t  # noqa: E402
 
 from pptx import Presentation  # noqa: E402
@@ -71,11 +74,12 @@ def pick_size(texts, sizes, w, h, **kw) -> tuple[int, bool]:
 class Deck:
     def __init__(self, data: dict | None, spec: dict, base: Path):
         self.data, self.spec, self.base = data, spec, base
-        brand = (data or {}).get("_brand", {}) or {}
+        ctx = data or university_context(base)  # без курса — цвет и логотип из university/ рядом
+        brand = ctx.get("_brand", {}) or {}
         self.accent = hex_color(brand.get("color"))
         self.light = tint(self.accent, 0.88)
         logo = brand.get("logo")
-        bdir = (data or {}).get("_brand_dir")
+        bdir = ctx.get("_brand_dir")
         self.logo = bdir / logo if logo and bdir and (bdir / logo).exists() else None
         self.lang = spec.get("language") or (data or {}).get("language", "ru")
         self.course = course_title(data, self.lang) if data else spec.get("course", "")
@@ -316,7 +320,7 @@ class Deck:
             self.text(s, M, 5.25, SW - 2 * M, 0.45, who, 18, color=DARK)
         if teacher.get("position"):
             self.text(s, M, 5.7, SW - 2 * M, 0.4, teacher["position"], 14, color=GREY)
-        city = data.get("_profile", {}).get("city", "")
+        city = city_name(data)
         year = str(data.get("course", {}).get("academic_year", ""))
         footer = " · ".join(x for x in (city, year) if x)
         if footer:

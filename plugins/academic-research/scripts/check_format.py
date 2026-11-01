@@ -11,6 +11,8 @@
 --fix — исправить безопасное (поля, шрифт, кегль, интервал, отступ, выравнивание
 основного текста, номера страниц) в копию «<имя>_исправлено.docx»; заголовки,
 подписи и список литературы не трогаются.
+Нормы — ГОСТ; если выше файла есть university/settings.yaml, шрифт, кегль, интервал,
+отступ и поля берутся оттуда (раздел document).
 """
 from __future__ import annotations
 
@@ -24,11 +26,12 @@ from pathlib import Path
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
-from docx.shared import Cm, Pt
+from docx.shared import Cm, Mm, Pt
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import fail, utf8_stdout  # noqa: E402
+from common import DataError, fail, utf8_stdout  # noqa: E402
 from docxkit import MARK_RE, _field, _set_fonts  # noqa: E402
+from settings import DEFAULTS, load_settings  # noqa: E402
 
 FONT = "Times New Roman"
 SIZE = 14.0
@@ -277,14 +280,23 @@ def check(path: str | Path) -> tuple[list[Problem], dict]:
     return probs, stats
 
 
+def use_settings(start: Path) -> None:
+    """Нормы проверки из university/settings.yaml → document; нет файла — ГОСТ (значения выше)."""
+    global FONT, SIZE, SPACING, INDENT_CM, MARGINS
+    d = load_settings(start)["document"]
+    FONT, SIZE, SPACING, INDENT_CM = d["font"], float(d["size"]), float(d["line_spacing"]), float(d["indent_cm"])
+    m, dm = d["margins_mm"], DEFAULTS["document"]["margins_mm"]
+    MARGINS = {side: MARGINS[side] if m[side] == dm[side] else (m[side], m[side]) for side in MARGINS}
+
+
 # ---------- безопасное исправление ----------
 
 def fix(path: str | Path) -> Path:
     doc = Document(str(path))
     for s in doc.sections:
         s.page_width, s.page_height = Cm(21), Cm(29.7)
-        s.left_margin, s.right_margin = Cm(3), Cm(1.5)
-        s.top_margin, s.bottom_margin = Cm(2), Cm(2)
+        s.left_margin, s.right_margin = Mm(MARGINS["left"][1]), Mm(MARGINS["right"][1])
+        s.top_margin, s.bottom_margin = Mm(MARGINS["top"][1]), Mm(MARGINS["bottom"][1])
     if not any(re.search(r"instrText[^>]*>\s*PAGE\b", s.footer._element.xml) for s in doc.sections):
         for s in doc.sections:
             p = s.footer.paragraphs[0] if s.footer.paragraphs else s.footer.add_paragraph()
@@ -344,6 +356,10 @@ def main() -> None:
     path = Path(args.file).expanduser().resolve()
     if not path.exists() or path.suffix.lower() != ".docx":
         fail(f"нужен существующий файл .docx: {path}")
+    try:
+        use_settings(path.parent)
+    except DataError as e:
+        fail(str(e))
     try:
         probs, stats = check(path)
     except Exception as e:  # битый docx

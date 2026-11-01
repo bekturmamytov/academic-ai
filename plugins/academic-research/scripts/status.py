@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import DataError, fail, load_sources, load_work, utf8_stdout  # noqa: E402
+from common import DataError, fail, load_sources, load_work, thesis_pages, utf8_stdout  # noqa: E402
 
 CITE = re.compile(r"\[(@[^\]]+)\]")
 KEY = re.compile(r"@([\w:.\-]+)")
@@ -52,8 +52,13 @@ def main() -> None:
     for r in rows:
         print(f"{str(r[0])[:42]:42} {r[1]:8} {r[2]:>6} {r[3]:>6} {r[4]:>6} {r[5]:>7} {r[6]}")
     ok = sum(1 for s in sources.values() if s.get("verified") is True)
-    print(f"\nВсего ≈ {total_words} слов (≈ {round(total_words / 300)} стр.). "
+    pages = round(total_words / 300)
+    print(f"\nВсего ≈ {total_words} слов (≈ {pages} стр.). "
           f"Литература: проверено {ok} из {len(sources)}.")
+    norm = thesis_pages(w)
+    if norm:
+        note = "" if norm[0] <= pages <= norm[1] else (" — меньше нормы" if pages < norm[0] else " — больше нормы")
+        print(f"Объём по требованиям вуза: {norm[0]}–{norm[1]} стр. (university/settings.yaml){note}")
     if unverified:
         print(f"Ссылки на непроверенные: {', '.join(sorted(unverified))}")
     if unknown:

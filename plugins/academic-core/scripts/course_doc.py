@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from common import DataError, HOUR_KINDS, course_title, fail, load_course, loc, para, table
+from common import DataError, HOUR_KINDS, approval_role, course_title, fail, load_course, loc, para, settings, table
 from course_check import assessment_plan, grading_scale, report, scale_grade, validate_course
 from i18n import bloom_name, method_name, sdg_name, t, tv
 
@@ -129,16 +129,19 @@ def sec_outcomes(doc, data: dict, lang: str) -> None:
         para(doc, f'{t("competencies", lang)}: {"; ".join(items)}.')
 
 
-def sec_sdg_methods(doc, data: dict, lang: str) -> None:
-    sdg = data.get("sdg") or []
-    label(doc, f'{t("sdg", lang)}:')
-    for s in sdg or []:
-        para(doc, f'– {t("sdg_short", lang)} {s} «{sdg_name(s, lang)}»')
-    if not sdg:
-        para(doc, DASH)
-    label(doc, f'{t("methods", lang)}:')
-    for m in data.get("methods") or [DASH]:
-        para(doc, f"– {method_name(m, lang)}")
+def sec_sdg_methods(doc, data: dict, lang: str, hide: set[str] = frozenset()) -> None:
+    """ЦУР и методы; hide — что из них убрать (settings.yaml → syllabus.hide_sections)."""
+    if "sdg" not in hide:
+        sdg = data.get("sdg") or []
+        label(doc, f'{t("sdg", lang)}:')
+        for s in sdg or []:
+            para(doc, f'– {t("sdg_short", lang)} {s} «{sdg_name(s, lang)}»')
+        if not sdg:
+            para(doc, DASH)
+    if "methods" not in hide:
+        label(doc, f'{t("methods", lang)}:')
+        for m in data.get("methods") or [DASH]:
+            para(doc, f"– {method_name(m, lang)}")
 
 
 def sec_plan(doc, data: dict, lang: str) -> None:
@@ -200,6 +203,15 @@ def sec_assessment(doc, data: dict, lang: str) -> None:
           widths_cm=[4, 4, 8.5])
 
 
+def sec_extra(doc, data: dict, lang: str, item: dict) -> None:
+    """Свой раздел вуза (settings.yaml → syllabus.extra_sections): абзацы через пустую строку."""
+    from settings import lang_text
+
+    text = lang_text(item.get("text"), lang).strip()
+    for chunk in text.split("\n\n") if text else [DASH]:
+        para(doc, " ".join(chunk.split()))
+
+
 def sec_policy(doc, data: dict, lang: str) -> None:
     pol = data.get("policies") or {}
     for k in ("attendance", "late_work", "academic_integrity", "ai_use"):
@@ -226,16 +238,19 @@ def sec_literature(doc, data: dict, lang: str, final: bool) -> None:
 
 
 def sec_signatures(doc, data: dict, lang: str) -> None:
+    """Составитель, протокол кафедры (approval.protocol), утверждающий (approval.role, name)."""
     tch = data.get("teacher") or {}
+    ap = settings(data)["approval"]
     start = len(doc.paragraphs)
     who = ", ".join(x for x in (tch.get("position"), tch.get("degree")) if x)
     para(doc, f'{t("compiler", lang)}: {who} ____________ {tch.get("name") or "____________"}', indent=False)
     para(doc)
-    dept = (data.get("_profile") or {}).get("department")
-    para(doc, f'{t("dept_meeting", lang)}{" «" + dept + "»" if dept else ""}', indent=False)
-    para(doc, t("protocol", lang), indent=False)
-    para(doc)
-    para(doc, f'{t("approve_role", lang)} ____________ ____________', indent=False)
+    if ap["protocol"]:
+        dept = (data.get("_profile") or {}).get("department")
+        para(doc, f'{t("dept_meeting", lang)}{" «" + dept + "»" if dept else ""}', indent=False)
+        para(doc, t("protocol", lang), indent=False)
+        para(doc)
+    para(doc, f'{approval_role(data, lang)} ____________ {ap["name"] or "____________"}', indent=False)
     for p in doc.paragraphs[start:-1]:
         p.paragraph_format.keep_with_next = True
 

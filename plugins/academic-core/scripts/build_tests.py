@@ -6,8 +6,11 @@
 Moodle out/tests.gift и out/tests_moodle.xml.
 
     uv run build_tests.py "<папка курса>/tests.yaml" [--course course.yaml] [--check]
+        [--formats docx,xlsx,gift,moodle_xml] [--variants N] [--per-variant N]
 
 --check — только проверка банка (покрытие тем и РО, ключи, дубли, дистракторы).
+Что выгружать, сколько вариантов и вопросов: флаги > tests.yaml (variants, per_variant) >
+university/settings.yaml → tests (formats, variants, questions_per_variant, moodle) > все форматы, 2 варианта.
 Схема tests.yaml — skills/tests/references/tests-schema.md.
 """
 from __future__ import annotations
@@ -22,11 +25,14 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import DataError, course_title, fail, load_course, new_document, para, read_yaml, table  # noqa: E402
+from common import (  # noqa: E402
+    DataError, course_title, fail, load_course, load_settings, new_document, para, read_yaml, table,
+)
 from course_check import BLOOM_LEVELS, report  # noqa: E402
 from i18n import bloom_name, t, tv  # noqa: E402
 
 TYPES = ("single", "multiple", "truefalse", "matching", "short", "open")
+FORMATS = ("docx", "xlsx", "gift", "moodle_xml")
 DIFFICULTY = ("easy", "medium", "hard")
 LETTERS = {"ru": "АБВГДЕЖЗИК", "ky": "АБВГДЕЖЗИК", "en": "ABCDEFGHIJ"}
 CATCH_ALL = re.compile(r"все (вышеперечисленн|перечисленн|ответы верн)|нет (правильного|верного)|"
@@ -256,11 +262,11 @@ def bank_key(q: dict, lang: str) -> str:
 
 # ---------- docx ----------
 
-def test_document():
+def test_document(bank: dict, course: dict | None):
     from docx.enum.text import WD_ALIGN_PARAGRAPH
     from docx.shared import Cm, Pt
 
-    doc = new_document()
+    doc = new_document(course or bank.get("_settings"))
     pf = doc.styles["Normal"].paragraph_format
     doc.styles["Normal"].font.size = Pt(12)
     pf.line_spacing = 1.0
@@ -285,7 +291,7 @@ def header_block(doc, bank: dict, course: dict | None, lang: str, subtitle: str)
 def blank(bank: dict, course: dict | None, items: list[dict], v: int, lang: str):
     from docx.shared import Pt
 
-    doc = test_document()
+    doc = test_document(bank, course)
     L = LETTERS.get(lang, LETTERS["ru"])
     header_block(doc, bank, course, lang, f'{t("variant", lang)} {v}')
     para(doc, f'{t("student", lang)}: ______________________________   {t("group", lang)}: ________   '
@@ -328,7 +334,7 @@ def blank(bank: dict, course: dict | None, items: list[dict], v: int, lang: str)
 
 
 def key_doc(bank: dict, course: dict | None, variants: list[list[dict]], lang: str):
-    doc = test_document()
+    doc = test_document(bank, course)
     header_block(doc, bank, course, lang, t("answer_key", lang))
     for v, items in enumerate(variants, 1):
         para(doc, f'{t("variant", lang)} {v}', bold=True).paragraph_format.keep_with_next = True
@@ -561,12 +567,32 @@ def main() -> None:
     ap.add_argument("tests", help="путь к tests.yaml")
     ap.add_argument("--course", help="путь к course.yaml (по умолчанию — рядом с tests.yaml)")
     ap.add_argument("--check", action="store_true", help="только проверить банк")
+    ap.add_argument("--formats", help="что выгружать через запятую: docx, xlsx, gift, moodle_xml")
+    ap.add_argument("--variants", type=int, help="сколько вариантов бланка")
+    ap.add_argument("--per-variant", type=int, help="вопросов в варианте")
     args = ap.parse_args()
     path = Path(args.tests).expanduser().resolve()
     try:
         bank, course = load(path, args.course)
+        bank["_settings"] = course["_settings"] if course else load_settings(path.parent)
     except DataError as e:
         fail(str(e))
+    ts = bank["_settings"]["tests"]
+    bank.setdefault("variants", ts["variants"])
+    n_q = len(bank.get("questions") or []) if isinstance(bank.get("questions"), list) else 0
+    if not bank.get("per_variant") and ts["questions_per_variant"] and n_q:
+        bank["per_variant"] = min(ts["questions_per_variant"], n_q)  # банк меньше нормы вуза — весь банк
+    if args.variants:
+        bank["variants"] = args.variants
+    if args.per_variant:
+        bank["per_variant"] = args.per_variant
+    if args.formats:
+        formats = [x.strip() for x in args.formats.split(",") if x.strip()]
+        bad = [x for x in formats if x not in FORMATS]
+        if bad:
+            fail(f"--formats: «{', '.join(bad)}» — допустимо {', '.join(FORMATS)}")
+    else:
+        formats = [x for x in ts["formats"] if ts["moodle"] or x not in ("gift", "moodle_xml")]
     errors, warnings = validate_bank(bank, course)
     if errors:
         report(errors, warnings)
@@ -592,12 +618,16 @@ def main() -> None:
             fail(f"не удалось записать {p} — закройте файл и запустите снова")
         files.append(p)
 
-    save(build_xlsx(bank, course, variants, lang), out / "tests.xlsx")
-    for v, items in enumerate(variants, 1):
-        save(blank(bank, course, items, v, lang), out / f"tests_{v}.docx")
-    save(key_doc(bank, course, variants, lang), out / "tests_key.docx")
-    save(build_gift(bank, course, lang), out / "tests.gift")
-    save(build_moodle_xml(bank, course, lang), out / "tests_moodle.xml")
+    if "xlsx" in formats:
+        save(build_xlsx(bank, course, variants, lang), out / "tests.xlsx")
+    if "docx" in formats:
+        for v, items in enumerate(variants, 1):
+            save(blank(bank, course, items, v, lang), out / f"tests_{v}.docx")
+        save(key_doc(bank, course, variants, lang), out / "tests_key.docx")
+    if "gift" in formats:
+        save(build_gift(bank, course, lang), out / "tests.gift")
+    if "moodle_xml" in formats:
+        save(build_moodle_xml(bank, course, lang), out / "tests_moodle.xml")
     if warnings:
         report([], warnings)
     for p in files:

@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import CREDIT_HOURS, HOUR_KINDS, course_title, loc, new_document, out_dir, para, title_page  # noqa: E402
+from common import HOUR_KINDS, course_title, credit_hours, loc, new_document, out_dir, para, title_page  # noqa: E402
 from course_check import assessment_plan, report  # noqa: E402
 from course_doc import (  # noqa: E402
     DASH, heading, kv_table, load_checked, save, sec_assessment, sec_goals, sec_literature, sec_outcomes, sec_plan,
@@ -118,11 +118,11 @@ def build_xlsx(data: dict, lang: str):
     ws.cell(r_total, 1, t("total", lang))
     ws.cell(r_total, 2, f"=SUM(B{first}:B{last})")
     ws.cell(r_total + 1, 1, t("credits_calc", lang))
-    ws.cell(r_total + 1, 2, f"=B{r_total}/{CREDIT_HOURS}").number_format = "0.##"
+    ws.cell(r_total + 1, 2, f"=B{r_total}/{credit_hours(data)}").number_format = "0.##"
     ws.cell(r_total + 2, 1, t("credits_passport", lang))
     ws.cell(r_total + 2, 2, int(data.get("credits") or 0))
     ws.cell(r_total + 3, 1, t("check", lang))
-    ws.cell(r_total + 3, 2, f'=IF(B{r_total}=B{r_total + 2}*{CREDIT_HOURS},"{t("ok", lang)}","{t("bad", lang)}")')
+    ws.cell(r_total + 3, 2, f'=IF(B{r_total}=B{r_total + 2}*{credit_hours(data)},"{t("ok", lang)}","{t("bad", lang)}")')
     style_range(ws, hdr, hdr, 1, 3, head=True)
     style_range(ws, first, r_total + 3, 1, 3)
     style_range(ws, r_total, r_total, 1, 3, total=True)
@@ -233,7 +233,7 @@ def build_xlsx(data: dict, lang: str):
 # ---------- docx: рабочая программа дисциплины ----------
 
 def build_docx(data: dict, lang: str, final: bool):
-    doc = new_document()
+    doc = new_document(data)
     title_page(doc, data, lang, t("rup", lang))
     c = data.get("course") or {}
     hours = data.get("hours") or {}

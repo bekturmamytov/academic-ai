@@ -6,7 +6,7 @@
 title: Нормализация реляционных баз данных   # тема лекции — в заставке и концовке
 course: Базы данных                           # курс — в заставке
 teacher: Асанова Айгуль Токтогуловна          # ФИО — в заставке и концовке
-accent: "#1F4E79"                             # один акцентный цвет (brand.yaml вуза)
+accent: "#1F4E79"                             # один акцентный цвет; нет — brand.color вуза (university/settings.yaml)
 lang: ru                                      # ru | ky | en, необязательно
 slides:
   - type: title          # title | section | bullets | table | closing

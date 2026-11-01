@@ -1,0 +1,97 @@
+# Настройки вуза: university/settings.yaml в рабочей папке.
+#
+# Каждый пункт необязателен. Пункта нет — действует норма КР по умолчанию
+# (значения ниже и есть эти нормы). Порядок важности:
+#   course.yaml / work.yaml курса  >  university/settings.yaml  >  нормы КР по умолчанию.
+# Заполнить по образцам вуза поможет команда /academic-core:university.
+
+# ---------- вуз ----------
+university:
+  name: ""                 # полное название (ru) — на титульных листах
+  name_ky: ""
+  name_en: ""
+  short: ""                # краткое: «КНУ», «КГТУ»
+  city: ""                 # город на титуле; пусто — из profile.yaml
+  type: state              # state — государственный / некоммерческий; private — частный (см. лицензия Remotion)
+  ministry:                # первая строка титула; пусто — стандартная строка Минобрнауки КР
+    ru: ""
+    ky: ""
+    en: ""
+
+# ---------- фирменный стиль (заменяет university/brand.yaml; brand.yaml тоже читается) ----------
+brand:
+  logo: logo.png           # файл в папке university/; на титуле и в презентациях
+  color: "#1F4E79"         # акцентный цвет презентаций, пособий, видео
+
+# ---------- оформление Word-документов ----------
+document:
+  font: Times New Roman
+  size: 14                 # кегль основного текста
+  table_size: 12           # кегль в таблицах
+  line_spacing: 1.5
+  indent_cm: 1.25          # абзацный отступ
+  margins_mm: {left: 30, right: 15, top: 20, bottom: 20}
+  page_numbers: bottom-center   # bottom-center | bottom-right | top-center | top-right | none
+  title_page_logo: false   # логотип вуза на титульном листе
+
+# ---------- «УТВЕРЖДАЮ» / «СОГЛАСОВАНО» на титуле силлабуса, РУП, УМКД ----------
+approval:
+  enabled: true
+  role:                    # кто утверждает
+    ru: Заведующий кафедрой
+    ky: Кафедра башчысы
+    en: Head of Department
+  name: ""                 # «И.И. Иванов»; пусто — линия для подписи
+  agreed: []               # «СОГЛАСОВАНО»: [{role: {ru: Декан факультета}, name: ""}]
+  protocol: true           # строка «Рассмотрено на заседании кафедры, протокол № __ от __»
+
+# ---------- оценивание ----------
+grading:
+  credit_hours: 30         # часов в 1 кредите
+  scale:                   # шкала баллов → оценка; пусто — типовая шкала КР
+    - {min: 87, max: 100, letter: A, grade: {ru: отлично, ky: эң жакшы, en: excellent}}
+    - {min: 80, max: 86, letter: B, grade: {ru: хорошо, ky: жакшы, en: good}}
+    - {min: 74, max: 79, letter: C, grade: {ru: хорошо, ky: жакшы, en: good}}
+    - {min: 68, max: 73, letter: D, grade: {ru: удовлетворительно, ky: канааттандырарлык, en: satisfactory}}
+    - {min: 61, max: 67, letter: E, grade: {ru: удовлетворительно, ky: канааттандырарлык, en: satisfactory}}
+    - {min: 0, max: 60, letter: F, grade: {ru: неудовлетворительно, ky: канааттандырарлык эмес, en: fail}}
+  assessment_template:     # шаблон БРС для нового курса (сумма = 100); пусто — спросит команда
+    - {name: Текущий контроль, weight: 30, type: current}
+    - {name: Рубежный контроль 1, weight: 15, type: midterm, week: 8}
+    - {name: Рубежный контроль 2, weight: 15, type: midterm, week: 15}
+    - {name: Итоговый экзамен, weight: 40, type: final}
+
+# ---------- силлабус ----------
+syllabus:
+  hide_sections: []        # ключи разделов, которых нет в форме вуза: sdg, methods, srs, calendar, policies, literature
+  policies:                # тексты политики курса по умолчанию для всех курсов
+    attendance: ""
+    late_work: ""
+    academic_integrity: ""
+    ai_use: ""
+  extra_sections: []       # свои разделы в конце: [{title: {ru: ..., ky: ...}, text: {ru: ..., ky: ...}}]
+
+# ---------- тесты ----------
+tests:
+  formats: [docx, xlsx, gift, moodle_xml]   # что выгружать
+  variants: 2              # вариантов по умолчанию
+  questions_per_variant: 0   # вопросов в варианте; 0 — все вопросы банка
+  moodle: true             # есть ли Moodle в вузе
+  moodle_version: ""       # «4.1» — справочно, для инструкции импорта
+
+# ---------- научные и студенческие работы ----------
+research:
+  citation_style: gost     # gost | apa | ieee — стиль ссылок по умолчанию
+  bib_order: auto          # auto — ieee по порядку упоминания, остальные по алфавиту; alpha; cite
+  thesis_pages: {bachelor: [40, 60], master: [60, 90]}   # объём ВКР, страниц
+  plagiarism_min: 75       # минимальная оригинальность, % — для критериев и рецензий
+
+# ---------- учебно-методическое пособие ----------
+manual:
+  paper: a5                # a4 | a5 — формат PDF-вёрстки
+  approval_body: {ru: Учёный совет, ky: Илимий кеңеш, en: Academic Council}   # кто рекомендует к изданию
+
+# ---------- окружение ----------
+environment:
+  os: [windows, macos]     # на чём работают преподаватели — для подсказок установки
+  languages: [ru, ky]      # языки документов по умолчанию

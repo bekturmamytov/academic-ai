@@ -92,8 +92,40 @@ def _diagram_bullets(d) -> list[str]:
     return [x for x in out if x]
 
 
-def normalize(data: dict, source: str = "slides.yaml") -> dict:
-    """Приводит slides.yaml к одному виду и проверяет обязательные поля."""
+# ---------- настройки вуза ----------
+# Маленькая копия чтения university/settings.yaml (полный загрузчик — в academic-core/scripts/settings.py;
+# пути между плагинами не делим): только то, что нужно видео.
+
+def _read_yaml_dict(path: Path) -> dict:
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as e:
+        raise DataError(f"в {path.name} ошибка разметки YAML: {e}")
+    return data if isinstance(data, dict) else {}
+
+
+def university_info(start: Path) -> dict:
+    """{color, type} вуза: settings.yaml → brand.color / university.type, иначе brand.yaml → color."""
+    for d in [start, *start.parents]:
+        uni = d / "university"
+        if uni.is_dir():
+            break
+    else:
+        return {}
+    settings = _read_yaml_dict(uni / "settings.yaml") if (uni / "settings.yaml").exists() else {}
+    brand = _read_yaml_dict(uni / "brand.yaml") if (uni / "brand.yaml").exists() else {}
+    sb = settings.get("brand") if isinstance(settings.get("brand"), dict) else {}
+    su = settings.get("university") if isinstance(settings.get("university"), dict) else {}
+    color = str(sb.get("color") or brand.get("color") or "").strip()
+    return {"color": color if re.fullmatch(r"#[0-9A-Fa-f]{6}", color) else "",
+            "type": str(su.get("type") or "state").strip()}
+
+
+def normalize(data: dict, source: str = "slides.yaml", default_accent: str = "") -> dict:
+    """Приводит slides.yaml к одному виду и проверяет обязательные поля.
+
+    accent: slides.yaml → цвет вуза (default_accent) → #1F4E79.
+    """
     if not isinstance(data, dict) or not isinstance(data.get("slides"), list) or not data["slides"]:
         raise DataError(f"в {source} нет списка slides")
     raw = list(data["slides"])
@@ -124,7 +156,7 @@ def normalize(data: dict, source: str = "slides.yaml") -> dict:
             "table": table,
             "notes": str(s.get("notes") or "").strip(),
         })
-    accent = str(data.get("accent") or DEFAULT_ACCENT).strip()
+    accent = str(data.get("accent") or default_accent or DEFAULT_ACCENT).strip()
     if not re.fullmatch(r"#[0-9A-Fa-f]{6}", accent):
         warn(f"цвет accent «{accent}» не в виде #RRGGBB — беру {DEFAULT_ACCENT}")
         accent = DEFAULT_ACCENT
@@ -143,14 +175,15 @@ def load_slides(path: str | Path) -> dict:
     p = Path(path).expanduser().resolve()
     if not p.exists():
         raise DataError(f"не найден файл {p}")
+    accent = university_info(p.parent).get("color", "")
     if p.suffix.lower() == ".pptx":
         from slides_from_pptx import extract
-        return normalize(extract(p), p.name)
+        return normalize(extract(p), p.name, accent)
     try:
         data = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
     except yaml.YAMLError as e:
         raise DataError(f"в {p.name} ошибка разметки YAML: {e}")
-    return normalize(data, p.name)
+    return normalize(data, p.name, accent)
 
 
 # ---------- ключ ElevenLabs ----------

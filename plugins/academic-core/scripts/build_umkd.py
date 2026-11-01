@@ -18,12 +18,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from common import (  # noqa: E402
-    CREDIT_HOURS, DataError, check_hours, course_title, fail, load_course, new_document, out_dir, para, table,
+    DataError, check_hours, course_title, credit_hours, fail, load_course, new_document, out_dir, para, table,
     read_yaml, title_page,
 )
 from content_kit import (  # noqa: E402
-    KR_SCALE, add_runs, add_toc, parse_md, passport_literature,
-    render_docx, runs_text, section_items, split_frontmatter,
+    add_runs, add_toc, parse_md, passport_literature,
+    render_docx, runs_text, scale_rows, section_items, split_frontmatter,
 )
 from i18n import LABELS, t  # noqa: E402
 
@@ -96,7 +96,7 @@ class Umkd:
         self.srs = read_yaml(sfile) if sfile.exists() else {}
         self.lectures = sorted(p for p in (self.dir / "lectures").glob("*.md") if not p.name.startswith("_")) \
             if (self.dir / "lectures").is_dir() else []
-        self.doc = new_document()
+        self.doc = new_document(data)
         self.composer = None
         self.status: list[tuple[str, str, str]] = []
         self.warns: list[str] = []
@@ -174,7 +174,7 @@ class Umkd:
         hours = d.get("hours", {}) or {}
         rows = [[t(k, lang), hours.get(k, 0)] for k in ("lectures", "practicals", "labs", "srsp", "srs") if hours.get(k)]
         rows.append([t("total", lang), sum(int(v or 0) for v in hours.values())])
-        rows.append([t("credits", lang), f'{d.get("credits", "")} (× {CREDIT_HOURS} ч)'])
+        rows.append([t("credits", lang), f'{d.get("credits", "")} (× {credit_hours(d)} ч)'])
         table(doc, [t("kind_hours", lang), t("hours", lang)], rows, widths_cm=[10, 6.5])
         for p in check_hours(d):
             self.warns.append(f"часы: {p}")
@@ -201,12 +201,13 @@ class Umkd:
         para(doc, f'{t("scale", lang)}:', bold=True, indent=False)
         li = {"ru": 3, "ky": 4, "en": 5}.get(lang, 3)
         table(doc, [t("points_range", lang), t("letter", lang), t("grade", lang)],
-                   [[f"{r[0]}–{r[1]}", r[2], r[li]] for r in KR_SCALE], widths_cm=[4, 3, 9.5])
+                   [[f"{r[0]}–{r[1]}", r[2], r[li]] for r in scale_rows(d)], widths_cm=[4, 3, 9.5])
         pol = d.get("policies", {}) or {}
         if pol:
             doc.add_heading(f'{self.sec}.8. {t("policy", lang)}', level=2)
-            for v in pol.values():
-                para(doc, f"– {v}")
+            for k, v in pol.items():
+                if not k.endswith(("_ru", "_ky", "_en")):  # переводы политики — не отдельные пункты
+                    para(doc, f"– {v}")
         self.mark("u_program", "готово", "из course.yaml")
 
     def lectures_part(self):
