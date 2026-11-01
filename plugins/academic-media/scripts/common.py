@@ -168,12 +168,44 @@ def read_env_file(path: Path) -> dict[str, str]:
     return out
 
 
+def env_path() -> Path:
+    return academic_home() / ".env"
+
+
 def get_setting(name: str) -> str | None:
     """Переменная окружения, затем ~/.academic/.env. Значение никогда не печатается."""
     val = os.environ.get(name) or os.environ.get(f"CLAUDE_PLUGIN_OPTION_{name}")
     if val:
         return val.strip()
-    return read_env_file(academic_home() / ".env").get(name) or None
+    return read_env_file(env_path()).get(name) or None
+
+
+ELEVENLABS_API = "https://api.elevenlabs.io"
+KEY_HINT = "Проверьте строку ELEVENLABS_API_KEY в ~/.academic/.env (без кавычек и пробелов)."
+
+
+def elevenlabs_error(code: int, body: str) -> str:
+    """Ответ ElevenLabs с ошибкой → понятная фраза по-русски. Ключ в текст не попадает."""
+    status, message = "", body[:300]
+    try:
+        import json
+        detail = json.loads(body).get("detail")
+        if isinstance(detail, dict):
+            status, message = str(detail.get("status") or ""), str(detail.get("message") or message)
+    except (ValueError, AttributeError):
+        pass
+    if status == "payment_required":
+        return ("ElevenLabs: у вашего аккаунта не прошла оплата подписки — озвучка заблокирована. "
+                "Оплатите тариф на elevenlabs.io → Subscription или выберите режим «своя запись» или «только титры».")
+    if status == "missing_permissions":
+        return f"ElevenLabs: у ключа не хватает прав ({message}). Создайте ключ с правом Text to Speech."
+    if status in ("quota_exceeded", "too_many_concurrent_requests", "system_busy") or code in (402, 429):
+        return f"ElevenLabs: закончились символы тарифа или слишком много запросов ({code}). {message}"
+    if status in ("voice_not_found",) or code == 404:
+        return f"ElevenLabs: голос не найден (404) — проверьте --voice или ELEVENLABS_VOICE_ID. {message}"
+    if code == 401:
+        return f"ElevenLabs не принял ключ (401). {KEY_HINT}"
+    return f"ElevenLabs ответил ошибкой {code}: {message}"
 
 
 # ---------- окружение ----------

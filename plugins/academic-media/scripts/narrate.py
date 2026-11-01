@@ -33,7 +33,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from common import DataError, ensure_tools, fail, get_setting, load_slides, media_duration, warn
+from common import (DataError, elevenlabs_error, ensure_tools, fail, get_setting, load_slides,
+                    media_duration, warn)
 
 WPM = 150
 LEAD = 0.5            # пауза в начале слайда до голоса
@@ -192,14 +193,7 @@ def bullet_reveals(slide: dict, cues: list[dict], slide_start: float, duration: 
 # ---------- голос ----------
 
 def _http_error(e: urllib.error.HTTPError) -> str:
-    body = e.read().decode(errors="replace")[:300]
-    if e.code == 401:
-        return "ElevenLabs не принял ключ (401). Проверьте ELEVENLABS_API_KEY в ~/.academic/.env."
-    if e.code in (402, 429) or "quota" in body.lower():
-        return f"ElevenLabs: закончились символы тарифа или слишком много запросов ({e.code}). {body}"
-    if e.code == 404:
-        return f"ElevenLabs: голос не найден (404) — проверьте --voice. {body}"
-    return f"ElevenLabs ответил ошибкой {e.code}: {body}"
+    return elevenlabs_error(e.code, e.read().decode(errors="replace"))
 
 
 def _words_from_chars(chars, starts, ends) -> list[dict]:

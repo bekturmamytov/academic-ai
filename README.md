@@ -54,7 +54,7 @@ claude plugin install academic --marketplace bekturmamytov/academic-ai
 | `/academic-research:thesis` | магистерская, кандидатская, автореферат | docx по ГОСТ |
 | `/academic-research:student-work` | задание, методичка, критерии, рецензия и отзыв на работу студента | docx |
 | `/academic-research:format-check` | проверка и исправление оформления по ГОСТ | список замечаний |
-| `/academic-media:video-lecture` | видео-лекция из слайдов: ElevenLabs, своя запись или титры (beta) | mp4 + srt |
+| `/academic-media:video-lecture` | видео-лекция из слайдов: голос ElevenLabs по своему ключу, своя запись или титры (beta) | mp4 + srt |
 
 ## Принципы
 

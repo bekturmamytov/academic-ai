@@ -5,14 +5,16 @@
 
 ## Ключ
 
-1. elevenlabs.io → профиль → **API Keys** → Create. Права: Text to Speech.
-2. Создайте файл `.env` в папке `.academic` в домашней папке
-   (macOS: `~/.academic/.env`, Windows: `%USERPROFILE%\.academic\.env`) со строкой:
+1. elevenlabs.io → профиль → **API Keys** → Create. Достаточно права Text to Speech.
+2. Файл для ключа создаёт и открывает команда (macOS: `~/.academic/.env`,
+   Windows: `%USERPROFILE%\.academic\.env`):
    ```
-   ELEVENLABS_API_KEY=ваш_ключ
+   uv run "${CLAUDE_PLUGIN_ROOT}/scripts/key.py" --open
    ```
+   Вставьте ключ после `ELEVENLABS_API_KEY=` без кавычек и пробелов и сохраните файл.
    Можно и переменной окружения `ELEVENLABS_API_KEY`.
-3. Проверка: `render.py --check` пишет «Ключ ElevenLabs: найден».
+3. Проверка: `key.py --check` — «Ключ ElevenLabs: принят», тариф и остаток символов.
+   Ключ нигде не печатается и уходит только в ElevenLabs.
 
 ## Голос
 
@@ -30,5 +32,6 @@
 ## Ошибки
 
 - 401 — ключ не подошёл: проверьте строку в `.env`, без кавычек и пробелов.
+- «не прошла оплата подписки» — тариф ElevenLabs не оплачен; оплатите в elevenlabs.io → Subscription.
 - 402 / 429 — закончились символы тарифа или слишком частые запросы.
 - 404 — голос с таким ID не найден в вашем аккаунте.

@@ -1,17 +1,14 @@
 {
   "name": "academic-media",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Видео-лекции из слайдов (Remotion), озвучка ElevenLabs по своему ключу, субтитры. Beta.",
-  "author": { "name": "AI Lab (Devline LLC)", "url": "https://ailab.kg" },
+  "author": {
+    "name": "AI Lab (Devline LLC)",
+    "url": "https://ailab.kg"
+  },
   "homepage": "https://github.com/bekturmamytov/academic-ai",
   "license": "PolyForm-Noncommercial-1.0.0",
-  "dependencies": ["academic-core"],
-  "userConfig": {
-    "elevenlabs_api_key": {
-      "type": "string",
-      "title": "ElevenLabs API key",
-      "description": "Ключ вашего аккаунта ElevenLabs для озвучки лекций. Необязательно: без ключа — своя запись или только титры.",
-      "sensitive": true
-    }
-  }
+  "dependencies": [
+    "academic-core"
+  ]
 }

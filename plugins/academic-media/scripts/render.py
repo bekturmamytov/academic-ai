@@ -188,7 +188,8 @@ def main() -> None:
         except DataError as e:
             fail(str(e))
         print("Окружение для видео готово: Node.js, ffmpeg, движок Remotion.")
-        print("Ключ ElevenLabs: " + ("найден" if get_setting("ELEVENLABS_API_KEY") else "не найден"))
+        print("Ключ ElevenLabs: " + ("найден (проверить — key.py --check)" if get_setting("ELEVENLABS_API_KEY")
+                                    else "не найден (создать файл для ключа — key.py --open)"))
         return
     if not a.slides:
         fail("укажите файл слайдов: slides.yaml или .pptx")
