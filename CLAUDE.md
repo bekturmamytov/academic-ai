@@ -12,7 +12,7 @@
 |---|---|
 | `.claude-plugin/marketplace.json` | каталог маркетплейса, четыре плагина |
 | `plugins/academic/` | пакет: зависимости + `setup` (проверка окружения) |
-| `plugins/academic-core/` | паспорт курса, силабус, РУП, тесты, СРС, лекции, презентации, УМКД, пособия, отчёты |
+| `plugins/academic-core/` | паспорт курса, силлабус, РУП, тесты, СРС, лекции, презентации, УМКД, пособия, отчёты |
 | `plugins/academic-research/` | реферат … кандидатская, статьи, литература, ГОСТ |
 | `plugins/academic-media/` | видео-лекции Remotion, озвучка ElevenLabs |
 | `installer/` | промпт-установщик, `install.sh` / `install.ps1` |

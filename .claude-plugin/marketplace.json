@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "academic-ai",
-  "description": "academicAI — помощник преподавателя вуза: силабусы, РУП, тесты, лекции, УМКД, научные работы, видео-лекции. Нормы КР, ru/ky/en.",
+  "description": "academicAI — помощник преподавателя вуза: силлабусы, РУП, тесты, лекции, УМКД, научные работы, видео-лекции. Нормы КР, ru/ky/en.",
   "owner": {
     "name": "AI Lab (Devline LLC)",
     "email": "info@ailab.kg",
@@ -17,7 +17,7 @@
     {
       "name": "academic-core",
       "source": "./plugins/academic-core",
-      "description": "Паспорт курса, силабус, РУП, тесты, СРС, лекции, презентации, УМКД, учебно-методические пособия, отчёты.",
+      "description": "Паспорт курса, силлабус, РУП, тесты, СРС, лекции, презентации, УМКД, учебно-методические пособия, отчёты.",
       "category": "education"
     },
     {

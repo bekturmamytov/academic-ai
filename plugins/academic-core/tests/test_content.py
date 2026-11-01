@@ -142,7 +142,7 @@ def test_srs(ws: Path):
 def test_umkd(ws: Path):
     c = ws / "course"
     run("build_srs.py", c / "srs.yaml", cwd=ws)
-    shutil.copyfile(c / "out" / "srs.docx", c / "out" / "syllabus_ru.docx")  # заглушка силабуса для слияния
+    shutil.copyfile(c / "out" / "srs.docx", c / "out" / "syllabus_ru.docx")  # заглушка силлабуса для слияния
     r = run("build_umkd.py", c / "course.yaml", cwd=ws)
     out = c / "out" / "umkd.docx"
     assert out.exists()

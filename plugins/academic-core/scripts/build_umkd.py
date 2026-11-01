@@ -148,7 +148,7 @@ class Umkd:
             self.merge(f)
             self.mark("u_syllabus", "готово", f.name)
         else:
-            para(self.doc, "[Раздел не собран: нет файла силабуса]", italic=True)
+            para(self.doc, "[Раздел не собран: нет файла силлабуса]", italic=True)
             self.mark("u_syllabus", "нет", SKILL["syllabus"])
 
     def program(self):
